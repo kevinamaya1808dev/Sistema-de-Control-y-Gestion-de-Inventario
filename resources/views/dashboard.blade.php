@@ -77,8 +77,39 @@
                     <p class="text-xs text-slate-500">Monitoreo de acciones de operadores</p>
                 </div>
             </div>
-            <div class="p-12 text-center text-slate-400 text-sm">
-                No hay registros de movimientos recientes en el servidor.
+            <div class="p-4">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm text-slate-600">
+                        <thead class="text-xxs uppercase text-slate-400 bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3">Fecha</th>
+                                <th class="px-4 py-3">Producto</th>
+                                <th class="px-4 py-3">SKU</th>
+                                <th class="px-4 py-3">Tipo</th>
+                                <th class="px-4 py-3">Cantidad</th>
+                                <th class="px-4 py-3">Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @foreach($recentMovements as $mov)
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-4 text-slate-500">{{ $mov->created_at->format('d M Y') }}</td>
+                                    <td class="px-4 py-4 font-semibold text-slate-900">{{ $mov->product->name }}</td>
+                                    <td class="px-4 py-4"><span class="font-mono text-xxs text-slate-400">{{ $mov->product->sku }}</span></td>
+                                    <td class="px-4 py-4">
+                                        @if($mov->type === 'entrada')
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xxs bg-emerald-50 text-emerald-600">↗ ENTRADA</span>
+                                        @else
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xxs bg-amber-50 text-amber-700">↘ SALIDA</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-4 font-semibold {{ $mov->type === 'entrada' ? 'text-emerald-600' : 'text-rose-600' }}">{{ $mov->type === 'entrada' ? '+' : '-' }}{{ $mov->quantity }}</td>
+                                    <td class="px-4 py-4 text-slate-500">{{ $mov->user->name ?? 'Usuario' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

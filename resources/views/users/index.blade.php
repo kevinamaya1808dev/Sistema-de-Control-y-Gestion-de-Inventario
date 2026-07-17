@@ -81,6 +81,8 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-xs text-slate-600 font-bold">
+
+                                
                                     {{ $user->id === 1 ? 'Todos (Master)' : $user->permissions->count() . ' activos' }}
                                 </span>
                             </div>
@@ -156,11 +158,11 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="text-xs font-semibold text-slate-500">Contraseña</label>
-                                <input type="password" name="password" :required="!isEditMode" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 focus:bg-white transition-all">
+                                <input type="password" name="password" :required="!isEditMode" placeholder="admin123" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 focus:bg-white transition-all">
                             </div>
                             <div class="space-y-1">
                                 <label class="text-xs font-semibold text-slate-500">Confirmar Contraseña</label>
-                                <input type="password" name="password_confirmation" :required="!isEditMode" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 focus:bg-white transition-all">
+                                <input type="password" name="password_confirmation" :required="!isEditMode" placeholder="admin123" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 focus:bg-white transition-all">
                             </div>
                         </div>
                     </div>

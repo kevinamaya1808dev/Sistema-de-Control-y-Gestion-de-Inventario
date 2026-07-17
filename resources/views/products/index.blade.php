@@ -1,140 +1,208 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-8">
+<div class="max-w-7xl mx-auto" x-data="productsPage()">
     @if(session('success'))
-        <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 p-4 rounded-lg shadow-sm flex items-center space-x-2">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
-            <span>{{ session('success') }}</span>
+        <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-700 shadow-sm">
+            {{ session('success') }}
         </div>
     @endif
     @if($errors->any())
-        <div class="bg-rose-50 border-l-4 border-rose-500 text-rose-800 p-4 rounded-lg shadow-sm flex items-center space-x-2">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
-            <span>{{ $errors->first() }}</span>
+        <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700 shadow-sm">
+            <ul class="list-disc list-inside text-sm">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <!-- Formulario Producto -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
-            <h2 class="text-lg font-bold text-gray-900 mb-6 flex items-center space-x-2">
-                <i data-lucide="plus-circle" class="text-indigo-600"></i>
-                <span>Nuevo Producto</span>
-            </h2>
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-8">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-400">SCGI / Productos</p>
+            <h1 class="text-3xl font-bold text-slate-900 mt-3">Registrar nuevo producto</h1>
+            <p class="mt-2 text-sm text-slate-500">Completa los datos para agregar un producto al inventario.</p>
+        </div>
+        <button @click="openModal()" class="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700">
+            <span class="text-xl">+</span>
+            Nuevo producto
+        </button>
+    </div>
 
-            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
+    <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        <div class="flex flex-col gap-4 border-b border-slate-100 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Inventario de Productos</h2>
+                <p class="text-sm text-slate-500 mt-1">Total de productos: <span class="font-semibold text-slate-900">{{ $products->count() }}</span></p>
+            </div>
+            <span class="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+                {{ auth()->user()->role->name ?? 'Administrador' }}
+            </span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-[0.22em]">
+                    <tr>
+                        <th class="px-6 py-4">Producto</th>
+                        <th class="px-6 py-4">SKU</th>
+                        <th class="px-6 py-4">Categoría</th>
+                        <th class="px-6 py-4">Precio</th>
+                        <th class="px-6 py-4 text-center">Stock</th>
+                        <th class="px-6 py-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                    @forelse($products as $product)
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-6 py-4 flex items-center gap-3">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                                    @if($product->image)
+                                        <img src="{{ asset('storage/' . $product->image) }}" class="h-full w-full rounded-2xl object-cover">
+                                    @else
+                                        <span class="text-sm font-bold uppercase">{{ strtoupper(substr($product->name, 0, 1)) }}</span>
+                                    @endif
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-900">{{ $product->name }}</p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 font-mono text-slate-500 text-xs">{{ $product->sku }}</td>
+                            <td class="px-6 py-4 text-slate-600">{{ $product->category->name }}</td>
+                            <td class="px-6 py-4 font-semibold text-slate-900">${{ number_format($product->price, 2) }}</td>
+                            <td class="px-6 py-4 text-center text-slate-600">{{ $product->stock }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <button @click="openEdit({{ $product->id }}, '{{ addslashes($product->sku) }}', '{{ addslashes($product->name) }}', '{{ addslashes($product->description ?? '') }}', {{ $product->category_id }}, {{ number_format($product->price, 2, '.', '') }}, {{ $product->stock }})"
+                                    class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                                    Editar
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-16 text-center text-slate-400">
+                                No hay productos registrados aún.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-4">
+        <div @click.away="closeModal()" class="w-full max-w-2xl overflow-hidden rounded-xl bg-white p-6 shadow-lg">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900" x-text="modalTitle"></h2>
+                    <p class="mt-1 text-sm text-slate-500" x-text="modalSubtitle"></p>
+                </div>
+                <button @click="closeModal()" class="rounded-full bg-slate-100 p-3 text-slate-500 hover:bg-slate-200 transition-colors">✕</button>
+            </div>
+
+            <form :action="formAction" method="POST" enctype="multipart/form-data" class="mt-6 space-y-4">
                 @csrf
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">SKU / Código</label>
-                        <input type="text" name="sku" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm" placeholder="Ej. PROD-101" required>
+                <template x-if="isEditMode">
+                    <input type="hidden" name="_method" value="PUT">
+                </template>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">SKU *</label>
+                        <input x-model="form.sku" name="sku" type="text" required class="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500" placeholder="ELC-001">
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Nombre</label>
-                        <input type="text" name="name" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm" placeholder="Ej. Martillo" required>
+
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nombre del producto *</label>
+                        <input x-model="form.name" name="name" type="text" required class="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500" placeholder="Laptop Dell Latitude 5540">
                     </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Descripción</label>
+                        <textarea x-model="form.description" name="description" rows="2" class="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500" placeholder="Descripción opcional del producto..."></textarea>
+                    </div>
+
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Categoría</label>
-                        <select name="category_id" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm bg-white" required>
-                            <option value="">Selecciona una opción</option>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Categoría *</label>
+                        <select x-model="form.category_id" name="category_id" required class="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500">
+                            <option value="">Selecciona categoría</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Precio ($)</label>
-                            <input type="number" step="0.01" name="price" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm" placeholder="150.00" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Stock Inicial</label>
-                            <input type="number" name="stock" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm" placeholder="10" required>
-                        </div>
-                    </div>
+
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Imagen del producto</label>
-                        <input type="file" name="image" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Precio (MXN) *</label>
+                        <input x-model="form.price" name="price" type="number" step="0.01" required class="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500" placeholder="0.00">
                     </div>
-                    <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all text-sm">
-                        Registrar Producto
-                    </button>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Stock inicial *</label>
+                        <input x-model="form.stock" name="stock" type="number" min="0" required class="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500" placeholder="0">
+                    </div>
+
+                    
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" @click="closeModal()" class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Cancelar</button>
+                    <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700" x-text="submitLabel"></button>
                 </div>
             </form>
         </div>
-
-        <!-- Tabla Inventario -->
-        <div class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-gray-900">Inventario de Productos</h2>
-                <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full">
-                    {{ count($products) }} Total
-                </span>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider">
-                            <th class="p-4 pl-6">Producto</th>
-                            <th class="p-4">SKU</th>
-                            <th class="p-4">Categoría</th>
-                            <th class="p-4">Precio</th>
-                            <th class="p-4 text-center">Existencias</th>
-                            <th class="p-4 text-right pr-6">Acción de Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 text-sm">
-                        @forelse($products as $product)
-                            <tr class="hover:bg-gray-50/50 transition-colors">
-                                <td class="p-4 pl-6 flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-100">
-                                        @if($product->image)
-                                            <img src="{{ asset('storage/' . $product->image) }}" class="object-cover w-full h-full">
-                                        @else
-                                            <i data-lucide="image" class="w-5 h-5 text-gray-400"></i>
-                                        @endif
-                                    </div>
-                                    <span class="font-semibold text-gray-950">{{ $product->name }}</span>
-                                </td>
-                                <td class="p-4 font-mono text-gray-500 text-xs">{{ $product->sku }}</td>
-                                <td class="p-4">
-                                    <span class="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
-                                        {{ $product->category->name }}
-                                    </span>
-                                </td>
-                                <td class="p-4 font-semibold text-gray-900">${{ number_format($product->price, 2) }}</td>
-                                <td class="p-4 text-center">
-                                    <span class="px-3 py-1 font-bold text-xs rounded-full {{ $product->stock < 5 ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700' }}">
-                                        {{ $product->stock }} pzas
-                                    </span>
-                                </td>
-                                <td class="p-4 text-right pr-6">
-                                    <form action="{{ route('products.updateStock', $product->id) }}" method="POST" class="inline-flex items-center space-x-1.5">
-                                        @csrf
-                                        <input type="number" name="quantity" min="1" value="1" class="w-12 text-center border border-gray-200 rounded-lg py-1 text-xs outline-none focus:border-indigo-500">
-                                        <button type="submit" name="type" value="entrada" class="p-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors" title="Registrar Entrada">
-                                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                                        </button>
-                                        <button type="submit" name="type" value="salida" class="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors" title="Registrar Salida">
-                                            <i data-lucide="minus" class="w-3.5 h-3.5"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="p-12 text-center text-gray-400">
-                                    <i data-lucide="package-open" class="w-12 h-12 mx-auto text-gray-300 mb-2"></i>
-                                    <p>Tu inventario está vacío. ¡Agrega tu primer producto a la izquierda!</p>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
 </div>
+
+<script>
+    function productsPage() {
+        return {
+            modalOpen: false,
+            isEditMode: false,
+            modalTitle: 'Registrar nuevo producto',
+            modalSubtitle: 'Llena los datos para agregar un producto al inventario.',
+            submitLabel: 'Registrar producto',
+            formAction: '{{ route('products.store') }}',
+            form: {
+                sku: '',
+                name: '',
+                description: '',
+                category_id: '',
+                price: '',
+                stock: 0,
+            },
+                openModal() {
+                this.modalOpen = true;
+                this.isEditMode = false;
+                this.modalTitle = 'Registrar nuevo producto';
+                this.modalSubtitle = 'Llena los datos para agregar un producto al inventario.';
+                this.submitLabel = 'Registrar producto';
+                this.formAction = '{{ route('products.store') }}';
+                this.form.sku = '';
+                this.form.name = '';
+                this.form.description = '';
+                this.form.category_id = '';
+                this.form.price = '';
+                this.form.stock = 0;
+            },
+            closeModal() {
+                this.modalOpen = false;
+            },
+            openEdit(id, sku, name, description, categoryId, price, stock) {
+                this.modalOpen = true;
+                this.isEditMode = true;
+                this.modalTitle = 'Editar producto';
+                this.modalSubtitle = 'Actualiza los datos de este producto.';
+                this.submitLabel = 'Guardar cambios';
+                this.formAction = '/productos/' + id;
+                this.form.sku = sku;
+                this.form.name = name;
+                this.form.description = description;
+                this.form.category_id = categoryId;
+                this.form.price = price;
+                this.form.stock = stock;
+            }
+        }
+    }
+</script>
 @endsection
