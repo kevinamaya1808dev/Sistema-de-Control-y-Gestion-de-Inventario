@@ -16,6 +16,7 @@ class InventoryMovement extends Model
         'type',
         'quantity',
         'date',
+        'reason',
     ];
 
     // El campo de fecha lo casteamos para que Laravel lo trate como objeto Carbon/Date

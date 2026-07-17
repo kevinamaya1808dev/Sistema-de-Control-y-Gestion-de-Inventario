@@ -12,17 +12,9 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::all();
+        $categories = Category::withCount('products')->get();
 
         return view('categories.index', compact('categories'));
-    }
-
-    /**
-     * Mostrar el formulario para crear una nueva categoría.
-     */
-    public function create()
-    {
-        return view('categories.create');
     }
 
     /**
@@ -31,7 +23,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max|unique:categories,name',
+            'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'nullable|string',
         ]);
 
@@ -63,7 +55,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $request->validate([
-            'name' => 'required|string|max|unique:categories,name,'.$category->id,
+            'name' => 'required|string|max:255|unique:categories,name,'.$category->id,
             'description' => 'nullable|string',
         ]);
 

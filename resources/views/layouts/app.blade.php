@@ -14,36 +14,104 @@
         <!-- Sidebar Izquierdo -->
         <aside id="sidebar" class="hidden md:flex md:w-64 bg-slate-900 text-slate-100 flex-col fixed inset-y-0 left-0 z-50 transition-all duration-300 shadow-xl">
             <!-- Logo y Cierre móvil -->
-            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+            <div class="p-5 border-b border-slate-800 flex flex-col gap-4">
                 <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-extrabold text-sm tracking-widest shadow-sm">S</span>
-                    <span class="text-xl font-bold tracking-wider text-white">SCGI</span>
+                    <span class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-extrabold text-lg tracking-widest shadow-sm">S</span>
+                    <div class="leading-tight">
+                        <p class="text-xl font-bold tracking-wide text-white">SCGI</p>
+                        <p class="text-xxs uppercase tracking-[0.4em] text-slate-300 font-semibold">Inventarios</p>
+                    </div>
                 </div>
-                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
+                <div class="inline-flex items-center justify-center rounded-2xl bg-slate-800/70 px-4 py-2 text-[10px] uppercase tracking-[0.25em] font-bold text-slate-300">
+                    Administrador
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden self-end text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
                     ✕
                 </button>
             </div>
             
             <!-- Navegación del Sistema -->
             <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all text-sm font-medium">
-                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                    <span>Catálogos</span>
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl {{ request()->routeIs('dashboard') ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white font-medium' }} transition-all text-sm">
+                    <svg class="w-5 h-5 {{ request()->routeIs('dashboard') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3"></path>
+                    </svg>
+                    <span>Dashboard</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all text-sm font-medium">
-                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                    <span>Movimientos</span>
+
+                @php $canCategories = Auth::user()->isAdmin() || (method_exists(Auth::user(), 'hasPermissionTo') && Auth::user()->hasPermissionTo('manage-categories')); @endphp
+                @if($canCategories)
+                    <a href="{{ route('categories.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl {{ request()->routeIs('categories.*') ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white font-medium' }} transition-all text-sm">
+                        <svg class="w-5 h-5 {{ request()->routeIs('categories.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <span>Categorías</span>
+                    </a>
+                @else
+                    <div class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 opacity-40 cursor-not-allowed text-sm">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <span>Categorías</span>
+                    </div>
+                @endif
+
+                @php $canProducts = Auth::user()->isAdmin() || (method_exists(Auth::user(), 'hasPermissionTo') && Auth::user()->hasPermissionTo('manage-products')); @endphp
+                @if($canProducts)
+                    <a href="{{ route('products.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl {{ request()->routeIs('products.*') ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white font-medium' }} transition-all text-sm">
+                        <svg class="w-5 h-5 {{ request()->routeIs('products.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <span>Productos</span>
+                    </a>
+                @else
+                    <div class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 opacity-40 cursor-not-allowed text-sm">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <span>Productos</span>
+                    </div>
+                @endif
+
+                <a href="{{ route('movements.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl {{ request()->routeIs('movements.*') ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white font-medium' }} transition-all text-sm">
+                    <svg class="w-5 h-5 {{ request()->routeIs('movements.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2-2-2m8 4H6m10 0l2-2-2-2"></path>
+                    </svg>
+                    <span>Control de Stock</span>
                 </a>
-                <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('users.*') ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white font-medium' }} transition-all text-sm">
-                    <svg class="w-5 h-5 {{ request()->routeIs('users.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <span>Usuarios</span>
-                </a>
+
+                @php $canUsers = Auth::user()->isAdmin() || (method_exists(Auth::user(), 'hasPermissionTo') && Auth::user()->hasPermissionTo('manage-users')); @endphp
+                @if($canUsers)
+                    <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl {{ request()->routeIs('users.*') ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white font-medium' }} transition-all text-sm">
+                        <svg class="w-5 h-5 {{ request()->routeIs('users.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span>Usuarios</span>
+                    </a>
+                @else
+                    <div class="flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 opacity-40 cursor-not-allowed text-sm">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <span>Usuarios</span>
+                    </div>
+                @endif
             </nav>
-            
-            <!-- Pie de Sidebar -->
-            <div class="p-4 border-t border-slate-800/80 bg-slate-950/30">
-                <div class="text-xs font-bold text-slate-300">SCGI Negocios</div>
-                <div class="text-xxs text-slate-500 mt-0.5">v1.0 &copy; 2026</div>
+
+
+            <!-- Pie de Sidebar: al hacer click cierra sesión y regresa al login -->
+            <div class="mt-auto p-4 border-t border-slate-800/80 bg-slate-950/30">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full text-left flex items-center gap-3 p-3 rounded-3xl bg-slate-900/90 hover:bg-slate-800 transition-colors">
+                        <div class="w-12 h-12 rounded-3xl bg-indigo-600 text-white font-bold flex items-center justify-center">{{ strtoupper(substr(Auth::user()->name ?? 'US', 0, 2)) }}</div>
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-white truncate">{{ Auth::user()->name ?? 'Usuario' }}</p>
+                            <p class="text-xxs text-slate-400 truncate">{{ Auth::user()->email ?? 'email@scgi.mx' }}</p>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </form>
             </div>
         </aside>
 

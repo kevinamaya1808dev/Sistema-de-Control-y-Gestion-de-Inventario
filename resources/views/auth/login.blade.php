@@ -11,7 +11,7 @@
     <div class="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl p-8 space-y-6">
         <div class="text-center space-y-2">
             <span class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-600 text-white text-xl font-bold shadow-md">
-                📦
+                
             </span>
             <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Ingresar al Sistema</h2>
             <p class="text-sm text-slate-500">SCGI - Control y Gestión de Inventarios</p>
