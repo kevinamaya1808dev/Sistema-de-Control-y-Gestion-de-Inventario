@@ -7,13 +7,12 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
     public function index()
     {
-        // Cargamos los usuarios con sus roles, permisos y además cargamos sus movimientos de caja activos
+        // Cargamos los usuarios con sus roles, permisos y además sus movimientos de caja activos
         $users = User::with(['role', 'permissions', 'cajaMovimientos' => function ($query) {
             $query->where('estado', 'abierta');
         }])->get();
@@ -21,13 +20,11 @@ class UserController extends Controller
         $roles = Role::all();
         $permissions = Permission::all();
 
-        // Métricas dinámicas para el dashboard de usuarios
+        // Métricas dinámicas para el dashboard
         $totalUsers = $users->count();
         $totalAdmins = $users->filter(fn ($u) => optional($u->role)->name === 'Administrador')->count();
         $totalOperators = $users->filter(fn ($u) => optional($u->role)->name === 'Operador')->count();
         $activeUsers = $users->where('is_active', true)->count();
-
-        // Métrica extra: ¿Cuántas cajas operativas están abiertas en este momento del día?
         $cajasAbiertasHoy = $users->filter(fn ($u) => $u->cajaMovimientos->isNotEmpty())->count();
 
         return view('users.index', compact(
@@ -45,12 +42,15 @@ class UserController extends Controller
             'role_id' => 'required|exists:roles,id',
         ]);
 
+        $isActive = filter_var($request->input('is_active', true), FILTER_VALIDATE_BOOLEAN);
+
+        // Pasamos la contraseña limpia porque el modelo User tiene 'password' => 'hashed' en $casts
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => $request->password,
             'role_id' => $request->role_id,
-            'is_active' => $request->has('is_active') ? true : false,
+            'is_active' => $isActive,
         ]);
 
         // Sincronizamos permisos (vacío por defecto si no hay selección)
@@ -72,11 +72,11 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'role_id' => $user->role_id ?? 1,
-                'is_active' => true,
+                'is_active' => true, // El Super Admin jamás se desactiva
             ];
 
             if ($request->filled('password')) {
-                $data['password'] = Hash::make($request->password);
+                $data['password'] = $request->password;
             }
 
             $user->update($data);
@@ -94,16 +94,20 @@ class UserController extends Controller
             'role_id' => 'required|exists:roles,id',
         ]);
 
-        $user->update([
+        $isActive = filter_var($request->input('is_active', true), FILTER_VALIDATE_BOOLEAN);
+
+        $data = [
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $request->role_id,
-            'is_active' => $request->has('is_active') ? true : false,
-        ]);
+            'is_active' => $isActive,
+        ];
 
         if ($request->filled('password')) {
-            $user->update(['password' => Hash::make($request->password)]);
+            $data['password'] = $request->password;
         }
+
+        $user->update($data);
 
         // Sincronizamos correctamente los permisos editados
         $user->permissions()->sync($request->input('permissions', []));
@@ -117,7 +121,6 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'Acción no permitida. El Super Administrador principal no puede ser eliminado.');
         }
 
-        // Validación de negocio preventiva: No borrar a un operador si tiene una caja abierta actualmente
         $tieneCajaAbierta = CajaMovimiento::where('user_id', $user->id)
             ->where('estado', 'abierta')
             ->exists();

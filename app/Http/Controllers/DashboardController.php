@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\InventoryMovement;
 use App\Models\Product;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -21,6 +24,11 @@ class DashboardController extends Controller
             return redirect()->route('caja.index')->with('info', 'Acceso al Dashboard restringido para el rol de Operador.');
         }
 
+        // --- FILTRO DE MES PARA LA GRÁFICA Y ROTACIÓN ---
+        $selectedMonth = $request->input('month', now()->format('Y-m'));
+        $startOfMonth = Carbon::parse($selectedMonth.'-01')->startOfMonth();
+        $endOfMonth = Carbon::parse($selectedMonth.'-01')->endOfMonth();
+
         // --- MÉTRICAS REALES DESDE LA BASE DE DATOS (SOLO ADMINISTRADOR) ---
 
         // A. Total de productos registrados en el catálogo
@@ -32,10 +40,22 @@ class DashboardController extends Controller
             ->distinct('sku')
             ->count();
 
-        // C. Valor económico total del almacén (Optimizado directamente en BD o por colección)
+        // C. Valor económico total del almacén
         $totalInventoryValue = Product::all()->sum(function ($product) {
             return $product->price * $product->stock;
         });
+
+        // C-2. Dinero total de las ventas en el mes seleccionado
+        $totalSalesMoney = InventoryMovement::where('type', 'salida')
+            ->where(function ($query) {
+                $query->where('reason', 'like', '%venta%')
+                    ->orWhere('reason', 'like', '%Venta%');
+            })
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get()
+            ->sum(function ($movement) {
+                return $movement->total ?? (($movement->price ?? 0) * ($movement->quantity ?? 0));
+            });
 
         // D. Colección de productos con Stock Crítico (Menor o igual a 5 piezas)
         $lowStockProducts = Product::where('stock', '<=', 5)->get();
@@ -46,12 +66,31 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        $topProducts = InventoryMovement::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->groupBy('product_id')
+            ->orderByDesc('total_quantity')
+            ->take(5)
+            ->with('product')
+            ->get();
+
+        $mostSoldProduct = $topProducts->first();
+
+        // Preparamos los arrays que leerá la vista y el JS modular
+        $chartLabels = $topProducts->pluck('product.name')->toArray();
+        $chartData = $topProducts->pluck('total_quantity')->toArray();
+
         return view('dashboard', compact(
             'totalProductsCount',
             'activeSkusCount',
             'totalInventoryValue',
+            'totalSalesMoney',
             'lowStockProducts',
-            'recentActivities'
+            'recentActivities',
+            'chartLabels',
+            'chartData',
+            'selectedMonth',
+            'mostSoldProduct'
         ));
     }
 }

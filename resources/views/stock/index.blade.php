@@ -18,7 +18,7 @@
             </div>
             <button type="button" 
                     @click="openCreateModal()"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all cursor-pointer">
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition-all cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Registrar Movimiento
             </button>
@@ -52,8 +52,8 @@
                    placeholder="Buscar por producto o motivo..." 
                    class="w-full pl-10 pr-4 py-2 bg-slate-50/75 dark:bg-slate-950/75 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all">
         </div>
-        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <select x-model="selectedTypeFilter" class="px-4 py-2 bg-slate-50/75 dark:bg-slate-950/75 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <select x-model="selectedTypeFilter" class="w-full sm:w-auto px-4 py-2 bg-slate-50/75 dark:bg-slate-950/75 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none">
                 <option value="">Todos los tipos</option>
                 <option value="entrada">Entradas</option>
                 <option value="salida">Salidas</option>
@@ -61,55 +61,95 @@
         </div>
     </div>
 
-    <!-- TABLA DE MOVIMIENTOS -->
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50/75 dark:bg-slate-950/75 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        <th class="py-4 px-6">ID</th>
-                        <th class="py-4 px-6">Producto</th>
-                        <th class="py-4 px-6">Tipo</th>
-                        <th class="py-4 px-6">Cantidad</th>
-                        <th class="py-4 px-6">Motivo</th>
-                        <th class="py-4 px-6">Registrado por</th>
-                        <th class="py-4 px-6">Fecha</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
-                    @forelse($movements as $movement)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors"
-                            x-show="(!searchQuery || '{{ strtolower(addslashes($movement->product->name ?? '')) }}'.includes(searchQuery.toLowerCase()) || '{{ strtolower(addslashes($movement->reason ?? '')) }}'.includes(searchQuery.toLowerCase())) && (!selectedTypeFilter || '{{ $movement->type }}' === selectedTypeFilter)">
-                            
-                            <td class="py-4 px-6 text-slate-400 font-mono text-[11px]">#{{ $movement->id }}</td>
-                            <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">{{ $movement->product->name ?? 'N/A' }}</td>
-                            
-                            <!-- Tipo -->
-                            <td class="py-4 px-6">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase {{ $movement->type === 'entrada' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' }}">
-                                    {{ $movement->type }}
-                                </span>
-                            </td>
+    <!-- CONTENEDOR DE REGISTROS -->
+    <div class="space-y-4">
+        
+        <!-- VISTA MÓVIL: CARDS (Se muestra solo en pantallas pequeñas < sm) -->
+        <div class="block sm:hidden space-y-3">
+            @forelse($movements as $movement)
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3"
+                     x-show="(!searchQuery || '{{ strtolower(addslashes($movement->product->name ?? '')) }}'.includes(searchQuery.toLowerCase()) || '{{ strtolower(addslashes($movement->reason ?? '')) }}'.includes(searchQuery.toLowerCase())) && (!selectedTypeFilter || '{{ $movement->type }}' === selectedTypeFilter)">
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 font-mono text-[11px]">#{{ $movement->id }}</span>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase {{ $movement->type === 'entrada' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' }}">
+                            {{ $movement->type }}
+                        </span>
+                    </div>
 
-                            <td class="py-4 px-6 font-mono font-bold">{{ $movement->quantity }} pzas</td>
-                            <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ $movement->reason }}</td>
-                            <td class="py-4 px-6">{{ $movement->user->name ?? 'Sistema' }}</td>
-                            
-                            {{-- FECHA FORMATO d/m/Y (SIN HORA) --}}
-                            <td class="py-4 px-6 text-slate-400 text-[11px] whitespace-nowrap">
-                                {{ $movement->created_at ? $movement->created_at->format('d/m/Y') : '' }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="py-12 text-center text-slate-400">
-                                No se encontraron movimientos de stock registrados.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-sm">{{ $movement->product->name ?? 'N/A' }}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $movement->reason }}</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                        <div>
+                            <span class="text-slate-400 text-[10px] block uppercase font-bold">Cantidad</span>
+                            <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{ $movement->quantity }} pzas</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-slate-400 text-[10px] block uppercase font-bold">Por / Fecha</span>
+                            <span class="text-slate-600 dark:text-slate-300 font-medium">{{ $movement->user->name ?? 'Sistema' }}</span>
+                            <span class="text-slate-400 text-[11px] block">{{ $movement->created_at ? $movement->created_at->format('d/m/Y') : '' }}</span>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-slate-400 text-xs">
+                    No se encontraron movimientos de stock registrados.
+                </div>
+            @endforelse
         </div>
+
+        <!-- VISTA DESKTOP: TABLA (Se oculta en móviles y aparece desde >= sm) -->
+        <div class="hidden sm:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/75 dark:bg-slate-950/75 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            <th class="py-4 px-6">ID</th>
+                            <th class="py-4 px-6">Producto</th>
+                            <th class="py-4 px-6">Tipo</th>
+                            <th class="py-4 px-6">Cantidad</th>
+                            <th class="py-4 px-6">Motivo</th>
+                            <th class="py-4 px-6">Registrado por</th>
+                            <th class="py-4 px-6">Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
+                        @forelse($movements as $movement)
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors"
+                                x-show="(!searchQuery || '{{ strtolower(addslashes($movement->product->name ?? '')) }}'.includes(searchQuery.toLowerCase()) || '{{ strtolower(addslashes($movement->reason ?? '')) }}'.includes(searchQuery.toLowerCase())) && (!selectedTypeFilter || '{{ $movement->type }}' === selectedTypeFilter)">
+                                
+                                <td class="py-4 px-6 text-slate-400 font-mono text-[11px]">#{{ $movement->id }}</td>
+                                <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">{{ $movement->product->name ?? 'N/A' }}</td>
+                                
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase {{ $movement->type === 'entrada' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' }}">
+                                        {{ $movement->type }}
+                                    </span>
+                                </td>
+
+                                <td class="py-4 px-6 font-mono font-bold">{{ $movement->quantity }} pzas</td>
+                                <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ $movement->reason }}</td>
+                                <td class="py-4 px-6">{{ $movement->user->name ?? 'Sistema' }}</td>
+                                
+                                <td class="py-4 px-6 text-slate-400 text-[11px] whitespace-nowrap">
+                                    {{ $movement->created_at ? $movement->created_at->format('d/m/Y') : '' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="py-12 text-center text-slate-400">
+                                    No se encontraron movimientos de stock registrados.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <!-- MODAL DE NUEVO MOVIMIENTO -->
@@ -123,11 +163,11 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         
-        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-lg overflow-hidden transform transition-all"
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-lg overflow-hidden transform transition-all my-8"
              @click.outside="isModalOpen = false">
             
             <!-- Header -->
-            <div class="px-8 py-6 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="px-6 sm:px-8 py-5 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                     <h3 class="text-sm font-black text-slate-900 dark:text-white">Registrar Movimiento de Inventario</h3>
                     <p class="text-xs text-slate-400 mt-0.5">Añade o retira piezas del catálogo de inventario</p>
@@ -138,7 +178,7 @@
             </div>
 
             <!-- Formulario -->
-            <form action="{{ route('stock.store') }}" method="POST" class="p-8 space-y-5">
+            <form action="{{ route('stock.store') }}" method="POST" class="p-6 sm:p-8 space-y-5">
                 @csrf
 
                 <!-- PRODUCTO -->
@@ -162,14 +202,14 @@
                 <!-- TIPO DE MOVIMIENTO -->
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Tipo de Movimiento</label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <label class="relative flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all"
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                        <label class="relative flex flex-col p-3.5 sm:p-4 rounded-2xl border-2 cursor-pointer transition-all"
                                :class="currentMovement.type === 'entrada' ? 'border-emerald-500 bg-emerald-50/20 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 hover:border-slate-300'">
                             <input type="radio" name="type" value="entrada" x-model="currentMovement.type" class="sr-only">
                             <span class="text-xs font-bold text-slate-900 dark:text-white">Entrada</span>
                             <span class="text-[10px] text-slate-400 mt-0.5">Sumar artículos</span>
                         </label>
-                        <label class="relative flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all"
+                        <label class="relative flex flex-col p-3.5 sm:p-4 rounded-2xl border-2 cursor-pointer transition-all"
                                :class="currentMovement.type === 'salida' ? 'border-rose-500 bg-rose-50/20 dark:bg-rose-500/10' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 hover:border-slate-300'">
                             <input type="radio" name="type" value="salida" x-model="currentMovement.type" class="sr-only">
                             <span class="text-xs font-bold text-slate-900 dark:text-white">Salida</span>
@@ -249,7 +289,7 @@
                         <span class="text-xs font-black text-indigo-600 dark:text-indigo-400">Total: $<span x-text="totalCobro.toFixed(2)"></span></span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <!-- PRECIO UNITARIO -->
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Precio Unitario ($)</label>

@@ -28,7 +28,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password' => 'hashed', // Laravel hashea la contraseña automáticamente al asignar 'password'
         'is_active' => 'boolean',
     ];
 

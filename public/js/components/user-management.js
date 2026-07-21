@@ -22,46 +22,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 2. Definición del Componente Alpine.js (Modular y encapsulado)
+// 2. Componente Alpine.js para la Gestión de Usuarios
 document.addEventListener('alpine:init', () => {
     Alpine.data('userManagement', () => ({
         isModalOpen: false,
         isEditMode: false,
         
-        // Estado inicial de datos del modal
+        // Estado inicial de datos del modal (rol 2 asignado por defecto a nuevos)
         currentUser: { 
             id: null, 
             name: '', 
             email: '', 
-            role_id: 1, 
+            role_id: 2, 
             is_active: true 
         },
         currentUserPerms: [],
         
-        // Cadenas vacías limpias para evitar errores de filtrado en el x-show de Blade
+        // Cadenas limpias para filtros
         searchQuery: '',
         selectedRoleFilter: '',
 
-        // Getter computado para contar reactivamente los permisos marcados
+        // Contador reactivo de permisos seleccionados
         get selectedPermsCount() {
             return Array.isArray(this.currentUserPerms) ? this.currentUserPerms.length : 0;
         },
 
-        // Inicializador del formulario en modo Creación
+        // Modal para CREAR usuario
         openCreateModal() {
             this.isEditMode = false;
             this.currentUser = { 
                 id: null, 
                 name: '', 
                 email: '', 
-                role_id: 1, 
+                role_id: 2, 
                 is_active: true 
             };
             this.currentUserPerms = [];
             this.isModalOpen = true;
         },
 
-        // Inicializador del formulario en modo Edición (Disparado por el escuchador de eventos)
+        // Modal para EDITAR usuario
         setUserData(user, userPermsIds) {
             if (!user) return;
             this.isEditMode = true;
@@ -70,11 +70,11 @@ document.addEventListener('alpine:init', () => {
                 id: user.id ? parseInt(user.id, 10) : null,
                 name: user.name || '',
                 email: user.email || '',
-                role_id: user.role_id ? parseInt(user.role_id, 10) : 1,
-                is_active: user.is_active === undefined ? true : !!user.is_active
+                role_id: user.role_id ? parseInt(user.role_id, 10) : 2,
+                is_active: user.is_active === undefined ? true : Boolean(Number(user.is_active))
             };
             
-            // Asegura un arreglo limpio de enteros
+            // Forzamos arreglos de números enteros para los checkboxes
             this.currentUserPerms = Array.isArray(userPermsIds) 
                 ? userPermsIds.map(id => parseInt(id, 10)) 
                 : [];
@@ -82,22 +82,14 @@ document.addEventListener('alpine:init', () => {
             this.isModalOpen = true;
         },
 
-        // Alterna la presencia de un ID de permiso en el arreglo (Optimizado)
-        togglePerm(id) {
-            const permId = parseInt(id, 10);
-            if (!Array.isArray(this.currentUserPerms)) {
-                this.currentUserPerms = [];
+        // Confirmación para eliminar usuario con SweetAlert2
+        confirmDelete(event, userId) {
+            // Protección reactiva defensiva: Previene intentar eliminar al Super Admin ID 1
+            if (userId === 1) {
+                window.notify('error', 'El Super Administrador principal no puede ser eliminado.');
+                return;
             }
-            const index = this.currentUserPerms.indexOf(permId);
-            if (index > -1) {
-                this.currentUserPerms.splice(index, 1);
-            } else {
-                this.currentUserPerms.push(permId);
-            }
-        },
 
-        // 3. NUEVO: Método de confirmación de eliminación integrado en el componente
-        confirmDelete(event) {
             const form = event.target;
             
             Swal.fire({
@@ -109,14 +101,14 @@ document.addEventListener('alpine:init', () => {
                 cancelButtonColor: '#f43f5e',  // Rose 500
                 confirmButtonText: 'Sí, eliminar',
                 cancelButtonText: 'Cancelar',
-                background: '#1a1a1a',         // Coherente con tu tema oscuro
+                background: '#1a1a1a',
                 color: '#ffffff',
                 customClass: {
                     popup: 'rounded-2xl border border-slate-800 shadow-xl'
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    form.submit(); // Si confirma, enviamos el formulario de forma nativa
+                    form.submit();
                 }
             });
         }
