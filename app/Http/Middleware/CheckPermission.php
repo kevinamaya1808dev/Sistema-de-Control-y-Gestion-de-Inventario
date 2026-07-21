@@ -10,7 +10,7 @@ class CheckPermission
 {
     public function handle(Request $request, Closure $next, string $permission): Response
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('login');
         }
 

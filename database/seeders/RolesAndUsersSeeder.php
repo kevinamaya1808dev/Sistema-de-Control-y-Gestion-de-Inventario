@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -20,13 +20,13 @@ class RolesAndUsersSeeder extends Seeder
         $permissions = [
             ['name' => 'Visualizar valor del inventario', 'slug' => 'view-inventory-value', 'module' => 'INVENTARIO'],
             ['name' => 'Visualizar reportes y gráficas', 'slug' => 'view-reports', 'module' => 'INVENTARIO'],
-            
+
             ['name' => 'Gestionar categorías', 'slug' => 'manage-categories', 'module' => 'CATÁLOGO'],
             ['name' => 'Gestionar productos', 'slug' => 'manage-products', 'module' => 'CATÁLOGO'],
             ['name' => 'Eliminar del catálogo', 'slug' => 'delete-catalog', 'module' => 'CATÁLOGO'],
-            
+
             ['name' => 'Registrar entradas y salidas', 'slug' => 'register-movements', 'module' => 'OPERACIONES'],
-            
+
             ['name' => 'Gestionar usuarios', 'slug' => 'manage-users', 'module' => 'ADMINISTRACIÓN'],
         ];
 

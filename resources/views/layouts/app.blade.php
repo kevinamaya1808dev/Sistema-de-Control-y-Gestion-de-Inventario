@@ -1,140 +1,155 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCGI - Sistema de Control y Gestión de Inventarios</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <!-- Alpine.js (necesario para dropdowns y modales globales) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased overflow-x-hidden">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'SCGI - Control y Gestión de Inventarios')</title>
+    
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 
-    <div class="flex min-h-screen">
-        <!-- Sidebar Izquierdo -->
-        <aside id="sidebar" class="hidden md:flex md:w-64 bg-slate-900 text-slate-100 flex-col fixed inset-y-0 left-0 z-50 transition-all duration-300 shadow-xl">
-            <!-- Logo y Cierre móvil -->
-            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="h-full font-sans antialiased text-slate-800 dark:text-slate-100 overflow-hidden bg-slate-100 dark:bg-slate-950">
+
+    <div class="h-screen flex w-full bg-slate-100 dark:bg-slate-950 overflow-hidden">
+        
+        <aside class="w-72 bg-slate-900 dark:bg-black text-slate-300 flex-shrink-0 flex flex-col border-r border-slate-800 h-full">
+            
+            <div class="h-20 flex items-center px-6 bg-slate-950/50 border-b border-slate-800 flex-shrink-0">
                 <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-extrabold text-sm tracking-widest shadow-sm">S</span>
-                    <span class="text-xl font-bold tracking-wider text-white">SCGI</span>
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-extrabold flex items-center justify-center text-xl shadow-lg shadow-indigo-600/30">
+                        S
+                    </div>
+                    <div>
+                        <span class="font-bold text-white text-base tracking-wider block">SCGI Negocios</span>
+                        <span class="text-xs text-slate-400 dark:text-slate-500">Control de Inventarios</span>
+                    </div>
                 </div>
-                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
-                    ✕
-                </button>
             </div>
-            
-            <!-- Navegación del Sistema -->
-            <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all text-sm font-medium">
-                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                    <span>Catálogos</span>
+
+            <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+                <p class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Menú Principal</p>
+                
+                {{-- DASHBOARD --}}
+                @can('manage-dashboard')
+                    <a href="{{ route('dashboard') }}" 
+                       class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('dashboard') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25' : 'text-slate-300 hover:bg-slate-800 dark:hover:bg-slate-900 hover:text-white' }}">
+                        <svg class="w-5 h-5 {{ request()->routeIs('dashboard') ? 'text-white' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        Dashboard
+                    </a>
+                @endcan
+
+                {{-- CATEGORÍAS --}}
+                @can('manage-categories')
+                    <a href="{{ route('categories.index') }}" 
+                       class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('categories.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25' : 'text-slate-300 hover:bg-slate-800 dark:hover:bg-slate-900 hover:text-white' }}">
+                        <svg class="w-5 h-5 {{ request()->routeIs('categories.*') ? 'text-white' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        Categorías
+                    </a>
+                @endcan
+
+                {{-- PRODUCTOS --}}
+                @can('manage-products')
+                    <a href="{{ route('products.index') }}" 
+                       class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('products.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25' : 'text-slate-300 hover:bg-slate-800 dark:hover:bg-slate-900 hover:text-white' }}">
+                        <svg class="w-5 h-5 {{ request()->routeIs('products.*') ? 'text-white' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        Productos
+                    </a>
+                @endcan
+
+                <p class="px-3 pt-6 text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Operaciones y Administración</p>
+                
+                {{-- CONTROL DE CAJA --}}
+                <a href="{{ route('caja.index') }}" 
+                   class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('caja.index') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25' : 'text-slate-300 hover:bg-slate-800 dark:hover:bg-slate-900 hover:text-white' }}">
+                    <div class="flex items-center gap-3.5">
+                        <svg class="w-5 h-5 {{ request()->routeIs('caja.index') ? 'text-white' : 'text-emerald-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span>Control de Caja</span>
+                    </div>
+                    @if(auth()->user()->cajaActiva())
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" title="Caja Abierta"></span>
+                    @else
+                        <span class="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-md border border-rose-500/30">Cerrada</span>
+                    @endif
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all text-sm font-medium">
-                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                    <span>Movimientos</span>
-                </a>
-                <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('users.*') ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/20' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white font-medium' }} transition-all text-sm">
-                    <svg class="w-5 h-5 {{ request()->routeIs('users.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <span>Usuarios</span>
-                </a>
+
+                {{-- HISTORIAL DE TURNOS Y CAJAS --}}
+                @can('manage-users')
+                    <a href="{{ route('caja.historial') }}" 
+                       class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('caja.historial*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25' : 'text-slate-300 hover:bg-slate-800 dark:hover:bg-slate-900 hover:text-white' }}">
+                        <svg class="w-5 h-5 {{ request()->routeIs('caja.historial*') ? 'text-white' : 'text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Historial de Turnos</span>
+                    </a>
+                @endcan
+
+                {{-- MOVIMIENTOS DE STOCK --}}
+                @can('register-movements')
+                    <a href="{{ route('stock.index') }}" 
+                       class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('stock.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25' : 'text-slate-300 hover:bg-slate-800 dark:hover:bg-slate-900 hover:text-white' }}">
+                        <svg class="w-5 h-5 {{ request()->routeIs('stock.*') ? 'text-white' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        Movimientos de Stock
+                    </a>
+                @endcan
+
+                {{-- GESTIÓN DE USUARIOS --}}
+                @can('manage-users')
+                    <a href="{{ route('users.index') }}" 
+                       class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('users.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25' : 'text-slate-300 hover:bg-slate-800 dark:hover:bg-slate-900 hover:text-white' }}">
+                        <svg class="w-5 h-5 {{ request()->routeIs('users.*') ? 'text-white' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        Gestión de Usuarios
+                    </a>
+                @endcan
             </nav>
-            
-            <!-- Pie de Sidebar -->
-            <div class="p-4 border-t border-slate-800/80 bg-slate-950/30">
-                <div class="text-xs font-bold text-slate-300">SCGI Negocios</div>
-                <div class="text-xxs text-slate-500 mt-0.5">v1.0 &copy; 2026</div>
+
+            <div class="p-4 bg-slate-950/40 border-t border-slate-800 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-white text-xs">
+                        {{ substr(auth()->user()->name ?? 'U', 0, 2) }}
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-white truncate">{{ auth()->user()->name ?? 'Usuario SCGI' }}</p>
+                        <p class="text-[11px] text-slate-400 truncate">{{ auth()->user()->email ?? 'admin@scgi.local' }}</p>
+                    </div>
+                </div>
             </div>
         </aside>
 
-        <!-- Contenedor Principal -->
-        <div class="flex-1 flex flex-col md:pl-64 min-w-0">
-            
-            <!-- Header Superior -->
-            <header class="h-18 bg-white border-b border-slate-200/80 flex items-center justify-between px-6 sticky top-0 z-40 shadow-xs">
-                
-                <!-- Hamburguesa móvil y Título -->
+        <div class="flex-1 flex flex-col min-w-0 h-full">
+            <header class="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 flex items-center justify-between shadow-xs z-10 w-full flex-shrink-0 transition-colors duration-200">
+                <h1 class="text-lg font-extrabold text-slate-800 dark:text-white tracking-tight">@yield('header_title', 'Panel General')</h1>
+
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-                    <h1 class="text-base font-bold text-slate-800 hidden sm:block">Panel de Control</h1>
-                </div>
-
-                <!-- Buscador Global del Header -->
-                <div class="flex-1 max-w-md mx-4 hidden md:block">
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </span>
-                        <input type="text" placeholder="Buscar productos, movimientos..." class="w-full pl-10 pr-4 py-2 bg-slate-50/80 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:border-indigo-500 focus:bg-white transition-all shadow-inner-xs">
-                    </div>
-                </div>
-
-                <!-- Perfil, Notificaciones y Acciones de Usuario -->
-                <div class="flex items-center gap-3 ml-auto sm:ml-0" x-data="{ profileOpen: false }">
-                    <button class="relative p-2.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100/80 transition-colors cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
-                    </button>
-
-                    <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
-
-                    <!-- Dropdown del Perfil -->
-                    <div class="relative">
-                        <button @click="profileOpen = !profileOpen" class="flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer select-none">
-                            <div class="text-right hidden sm:block">
-                                <div class="text-sm font-bold text-slate-800 leading-tight">
-                                    {{ Auth::user()->name ?? 'Saúl Pérez' }}
-                                </div>
-                                <div class="text-xxs text-slate-400 font-semibold uppercase tracking-wider">
-                                    {{ optional(Auth::user()->role)->name ?? 'Administrador' }}
-                                </div>
-                            </div>
-                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 font-extrabold flex items-center justify-center border border-indigo-100 text-sm shadow-xs uppercase">
-                                {{ substr(Auth::user()->name ?? 'SP', 0, 2) }}
-                            </div>
+                    <x-theme-toggle />
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/60 dark:text-rose-400 rounded-xl transition-colors cursor-pointer border border-rose-100 dark:border-rose-900/40">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            Cerrar Sesión
                         </button>
-
-                        <!-- Menú Desplegable de Sesión -->
-                        <div x-show="profileOpen" @click.away="profileOpen = false" 
-                             class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 text-sm"
-                             style="display: none;">
-                            <div class="px-4 py-2 border-b border-slate-100 sm:hidden">
-                                <p class="font-bold text-slate-800">{{ Auth::user()->name ?? 'Saúl' }}</p>
-                                <p class="text-xs text-slate-400">{{ Auth::user()->email ?? '' }}</p>
-                            </div>
-                            <a href="#" class="block px-4 py-2 text-slate-600 hover:bg-slate-50 transition-colors">Mi Perfil</a>
-                            <a href="#" class="block px-4 py-2 text-slate-600 hover:bg-slate-50 transition-colors">Configuración</a>
-                            <div class="border-t border-slate-100 my-1"></div>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2 text-rose-600 hover:bg-rose-50 transition-colors font-medium">
-                                    Cerrar sesión
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </header>
 
-            <!-- Contenido Dinámico de las Vistas -->
-            <main class="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto">
-                @yield('content')
+            <main class="flex-1 p-6 md:p-8 overflow-y-auto w-full bg-slate-100 dark:bg-slate-950 transition-colors duration-200">
+                <div class="w-full">
+                    @yield('content')
+                </div>
             </main>
         </div>
     </div>
 
-    <!-- Script para control responsivo del Sidebar en Móviles -->
-    <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('hidden');
-            sidebar.classList.toggle('flex');
-            sidebar.classList.toggle('w-full');
-            sidebar.classList.toggle('bg-slate-900/95');
-            sidebar.classList.toggle('backdrop-blur-md');
-        }
-    </script>
+    <x-toast-alerts />
+    @stack('scripts')
 </body>
 </html>

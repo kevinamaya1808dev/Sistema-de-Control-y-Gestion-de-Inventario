@@ -16,6 +16,7 @@ class LoginController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard'); // Redirige si ya está logueado
         }
+
         return view('auth.login');
     }
 

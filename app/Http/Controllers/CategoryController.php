@@ -19,6 +19,7 @@ class CategoryController extends Controller
 
     /**
      * Mostrar el formulario para crear una nueva categoría.
+     * Nota: No se usa directamente si manejas todo por modales, pero se deja por compatibilidad.
      */
     public function create()
     {
@@ -31,8 +32,8 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max|unique:categories,name',
-            'description' => 'nullable|string',
+            'name' => 'required|string|max:255|unique:categories,name',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         Category::create($request->only(['name', 'description']));
@@ -42,7 +43,7 @@ class CategoryController extends Controller
     }
 
     /**
-     * Mostrar una categoría específica (opcional, muchas veces no se usa).
+     * Mostrar una categoría específica.
      */
     public function show(Category $category)
     {
@@ -63,8 +64,8 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $request->validate([
-            'name' => 'required|string|max|unique:categories,name,'.$category->id,
-            'description' => 'nullable|string',
+            'name' => 'required|string|max:255|unique:categories,name,'.$category->id,
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $category->update($request->only(['name', 'description']));

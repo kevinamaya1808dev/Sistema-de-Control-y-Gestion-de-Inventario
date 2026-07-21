@@ -1,126 +1,165 @@
 @extends('layouts.app')
 
-@section('title', 'Panel de Administración - SCGI')
-@section('header-title', 'Panel de Control')
+@section('title', 'SCGI - Dashboard')
+@section('header_title', 'Panel General')
 
 @section('content')
-<div class="w-full space-y-6 pb-12">
-    
-    <!-- Banner de Bienvenida -->
-    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-            <h2 class="text-xl font-bold text-slate-900">¡Bienvenido de nuevo, {{ auth()->user()->name }}!</h2>
-            <p class="text-sm text-slate-500">Panel global de supervisión y control gerencial.</p>
+<div class="space-y-6">
+
+    <!-- BREADCRUMB & HEADER -->
+    <div class="flex flex-col gap-1">
+        <nav class="text-xs font-semibold text-slate-400">
+            SCGI <span class="mx-1.5 text-slate-300 dark:text-slate-700">/</span> <span class="text-slate-600 dark:text-slate-300 font-bold">Dashboard</span>
+        </nav>
+        <div class="mt-1">
+            <h1 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Bienvenido, {{ Auth::user()->name ?? 'Colaborador' }}</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 capitalize">
+                @php
+                    \Carbon\Carbon::setLocale('es');
+                @endphp
+                {{ \Carbon\Carbon::now()->translatedFormat('l, d \de F \de Y') }}
+            </p>
         </div>
-        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700">
-            <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-            Rol: Administrador
-        </span>
     </div>
 
-    <!-- Tarjetas de Métricas -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex items-center justify-between">
-            <div class="space-y-1">
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Productos</p>
-                <h3 class="text-3xl font-bold text-slate-900">{{ $totalProducts }}</h3>
-                <p class="text-xs text-slate-500 font-medium">Catálogo activo</p>
-            </div>
-            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-            </div>
+    <!-- ALERTA DE STOCK BAJO -->
+    @if(isset($lowStockProducts) && $lowStockProducts->count() > 0)
+    <div class="bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-3xl p-6 space-y-3 shadow-2xs">
+        <div class="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-extrabold text-xs">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>{{ $lowStockProducts->count() }} productos requieren reposición urgente</span>
         </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex items-center justify-between">
-            <div class="space-y-1">
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Valor de Almacén</p>
-                <h3 class="text-3xl font-bold text-slate-900">${{ number_format($inventoryValue, 2) }}</h3>
-                <p class="text-xs text-emerald-600 font-semibold">Inversión total</p>
-            </div>
-            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
+        <div class="space-y-1.5 pl-6">
+            @foreach($lowStockProducts as $product)
+                <div class="text-xs text-rose-900 dark:text-rose-300 flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded bg-white dark:bg-rose-900/60 border border-rose-200 dark:border-rose-800 font-mono text-[10px] font-bold text-rose-700 dark:text-rose-300">{{ $product->sku ?? 'N/D' }}</span>
+                    <span class="font-bold">{{ $product->name ?? 'Producto' }}</span>
+                    <span class="text-rose-500 dark:text-rose-400">— stock actual:</span>
+                    <span class="font-extrabold">{{ $product->stock ?? 0 }} pza</span>
+                </div>
+            @endforeach
         </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex items-center justify-between">
-            <div class="space-y-1">
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Bajo Stock</p>
-                <h3 class="text-3xl font-bold text-rose-600">{{ $lowStockCount }}</h3>
-                <p class="text-xs text-rose-500 font-medium">Requieren reposición</p>
-            </div>
-            <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center font-bold">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex items-center justify-between">
-            <div class="space-y-1">
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Seguridad</p>
-                <h3 class="text-3xl font-bold text-blue-600">Activo</h3>
-                <p class="text-xs text-blue-500 font-medium">Sistema blindado</p>
-            </div>
-            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            </div>
-        </div>
-
     </div>
+    @endif
 
-    <!-- Secciones Inferiores -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- TARJETAS DE MÉTRICAS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden lg:col-span-2">
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900">Auditoría del Sistema</h3>
-                    <p class="text-xs text-slate-500">Monitoreo de acciones de operadores</p>
+        <!-- Valor Total del Inventario -->
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs flex flex-col justify-between relative overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                    $
+                </div>
+                <span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20 uppercase tracking-wider">Sistema</span>
+            </div>
+            <div>
+                <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    ${{ number_format($totalInventoryValue ?? 0, 2) }}
+                </span>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">Valor total del inventario</p>
+                <p class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                    Inventario en tiempo real
+                </p>
+            </div>
+        </div>
+
+        <!-- Productos con Stock Bajo -->
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-rose-200 dark:border-rose-900/40 shadow-2xs flex flex-col justify-between bg-gradient-to-b from-rose-50/20 dark:from-rose-950/20 to-white dark:to-slate-900">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
             </div>
-            <div class="p-12 text-center text-slate-400 text-sm">
-                No hay registros de movimientos recientes en el servidor.
+            <div>
+                <span class="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
+                    {{ isset($lowStockProducts) ? $lowStockProducts->count() : 0 }}
+                </span>
+                <p class="text-xs font-bold text-slate-900 dark:text-slate-200 mt-1">Productos con stock bajo</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-2">Umbral: stock < 5 unidades</p>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <div>
-                <h3 class="text-lg font-bold text-slate-900">Control Gerencial</h3>
-                <p class="text-xs text-slate-500">Herramientas de administración</p>
+        <!-- Productos Registrados -->
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
             </div>
-            
-            <div class="space-y-2">
-                <a href="{{ route('users.index') }}" class="flex items-center gap-3.5 w-full p-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all border border-slate-100 hover:border-slate-200 group">
-                    <span class="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    </span>
-                    <div class="text-left">
-                        <p class="text-sm font-semibold text-slate-900">Gestionar Usuarios</p>
-                        <p class="text-xxs text-slate-400">Roles y permisos detallados</p>
-                    </div>
-                </a>
-                
-                <a href="{{ route('products.index') }}" class="flex items-center gap-3.5 w-full p-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all border border-slate-100 hover:border-slate-200 group">
-                    <span class="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    </span>
-                    <div class="text-left">
-                        <p class="text-sm font-semibold text-slate-900">Catálogo de Productos</p>
-                        <p class="text-xxs text-slate-400">Administrar stock y precios</p>
-                    </div>
-                </a>
-
-                <a href="{{ route('categories.index') }}" class="flex items-center gap-3.5 w-full p-3.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all border border-slate-100 hover:border-slate-200 group">
-                    <span class="p-2.5 bg-amber-50 text-amber-600 rounded-lg group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                    </span>
-                    <div class="text-left">
-                        <p class="text-sm font-semibold text-slate-900">Categorías</p>
-                        <p class="text-xxs text-slate-400">Departamentos de abarrotes</p>
-                    </div>
-                </a>
+            <div>
+                <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    {{ $totalProductsCount ?? 0 }}
+                </span>
+                <p class="text-xs font-bold text-slate-900 dark:text-slate-200 mt-1">Productos registrados</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-2">{{ $activeSkusCount ?? 0 }} SKUs activos en catálogo</p>
             </div>
         </div>
 
     </div>
+
+    <!-- TABLA DE ACTIVIDAD RECIENTE -->
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Actividad reciente</h3>
+            <span class="text-xs font-bold text-slate-400 dark:text-slate-500">
+                {{ isset($recentActivities) ? $recentActivities->count() : 0 }} registros
+            </span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/75 dark:bg-slate-950/75 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <th class="py-4 px-6">Fecha</th>
+                        <th class="py-4 px-6">Producto</th>
+                        <th class="py-4 px-6">SKU</th>
+                        <th class="py-4 px-6">Tipo</th>
+                        <th class="py-4 px-6">Cantidad</th>
+                        <th class="py-4 px-6 text-right">Usuario</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium text-slate-600 dark:text-slate-300">
+                    @forelse($recentActivities ?? [] as $activity)
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="py-4 px-6 text-slate-400 dark:text-slate-500">
+                                {{ $activity->created_at ? $activity->created_at->translatedFormat('d M Y') : '' }}
+                            </td>
+                            <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">
+                                {{ $activity->product->name ?? 'N/D' }}
+                            </td>
+                            <td class="py-4 px-6 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                                {{ $activity->product->sku ?? 'N/D' }}
+                            </td>
+                            <td class="py-4 px-6">
+                                @if(($activity->type ?? '') === 'entrada')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
+                                        ↗ ENTRADA
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
+                                        ↙ SALIDA
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="py-4 px-6 font-bold {{ ($activity->type ?? '') === 'entrada' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
+                                {{ ($activity->type ?? '') === 'entrada' ? '+' : '-' }}{{ $activity->quantity ?? 0 }}
+                            </td>
+                            <td class="py-4 px-6 text-right font-bold text-slate-700 dark:text-slate-300">
+                                {{ $activity->user->name ?? 'Sistema' }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-400 dark:text-slate-500">
+                                No hay registros de actividad recientes en la base de datos.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
-@endsection
+@endsection 

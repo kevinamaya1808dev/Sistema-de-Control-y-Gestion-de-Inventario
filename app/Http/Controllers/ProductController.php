@@ -11,13 +11,29 @@ use Illuminate\Support\Facades\Storage;
 class ProductController extends Controller
 {
     /**
-     * Mostra el catálogo de productos con sus categorías.
+     * Muestra el catálogo de productos con sus categorías.
      */
     public function index()
     {
         $products = Product::with('category')->get();
+        $categories = Category::all();
 
-        return view('products.index', compact('products'));
+        return view('products.index', compact('products', 'categories'));
+    }
+
+    /**
+     * Método para servir la imagen del producto de forma segura.
+     */
+    public function showImage($path)
+    {
+        $cleanPath = str_replace('products/', '', $path);
+        $fullPath = 'products/'.$cleanPath;
+
+        if (! Storage::disk('public')->exists($fullPath)) {
+            abort(404);
+        }
+
+        return response()->file(storage_path('app/public/'.$fullPath));
     }
 
     /**
@@ -31,17 +47,14 @@ class ProductController extends Controller
     }
 
     /**
-     * Guardar un nuevo producto con su imagen utilizando StoreProductRequest.
+     * Guardar un nuevo producto con su imagen.
      */
     public function store(StoreProductRequest $request)
     {
-        // Obtenemos únicamente los datos que ya pasaron la validación
         $data = $request->validated();
 
-        // Lógica para subir la imagen si el usuario la cargó
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = $path;
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
 
         Product::create($data);
@@ -59,7 +72,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Formulario de edición con el producto y las categorías para el select.
+     * Formulario de edición.
      */
     public function edit(Product $product)
     {
@@ -69,21 +82,17 @@ class ProductController extends Controller
     }
 
     /**
-     * Actualizar producto y reemplazar imagen utilizando UpdateProductRequest.
+     * Actualizar producto y reemplazar imagen.
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        // Obtenemos los datos ya validados
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
-            // Borramos la imagen anterior del disco si existe
             if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+                Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
             }
-            // Subimos la nueva
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = $path;
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
 
         $product->update($data);
@@ -97,9 +106,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        // Si el producto tiene imagen asignada, la borramos del servidor
         if ($product->image) {
-            Storage::disk('public')->delete($product->image);
+            Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
         }
 
         $product->delete();

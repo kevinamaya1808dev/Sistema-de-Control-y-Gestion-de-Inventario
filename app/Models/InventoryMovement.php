@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InventoryMovement extends Model
 {
@@ -13,25 +12,29 @@ class InventoryMovement extends Model
     protected $fillable = [
         'product_id',
         'user_id',
+        'caja_id',
         'type',
         'quantity',
+        'reason',
+        'unit_price',
+        'total',
+        'monto_recibido',
+        'cambio',
         'date',
     ];
 
-    // El campo de fecha lo casteamos para que Laravel lo trate como objeto Carbon/Date
-    protected $casts = [
-        'date' => 'date',
-    ];
-
-    // Relación: El movimiento pertenece a un producto
-    public function product(): BelongsTo
+    public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    // Relación: El movimiento fue registrado por un usuario
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function caja()
+    {
+        return $this->belongsTo(CajaMovimiento::class, 'caja_id');
     }
 }

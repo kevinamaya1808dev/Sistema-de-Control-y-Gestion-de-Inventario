@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
@@ -48,6 +49,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Relación: Un usuario tiene muchos turnos de caja.
+     */
+    public function cajaMovimientos(): HasMany
+    {
+        return $this->hasMany(CajaMovimiento::class);
+    }
+
+    /**
+     * Devuelve la caja que el usuario tiene abierta actualmente (o null si está cerrada).
+     */
+    public function cajaActiva()
+    {
+        return $this->cajaMovimientos()->where('estado', 'abierta')->first();
+    }
+
+    /**
      * Comprobar si el usuario tiene un permiso específico por su slug.
      */
     public function hasPermissionTo(string $permissionSlug): bool
@@ -61,5 +78,17 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role && $this->role->name === 'Administrador';
+    }
+
+    /**
+     * Comprobación unificada de permisos (ID 1 tiene pase maestro).
+     */
+    public function hasPermission(string $permissionSlug): bool
+    {
+        if ($this->id === 1) {
+            return true;
+        }
+
+        return $this->hasPermissionTo($permissionSlug);
     }
 }
