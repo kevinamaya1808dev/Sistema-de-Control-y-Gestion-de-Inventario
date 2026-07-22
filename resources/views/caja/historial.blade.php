@@ -1,36 +1,47 @@
 @extends('layouts.app')
 
-@section('header_title', 'Historial de Caja')
+@section('title', 'SCGI - Historial de Caja')
+@section('header_title', 'Historial de Turnos y Caja')
 
 @section('content')
-<div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+<x-app-container>
+<div class="space-y-8">
 
     <!-- CABECERA -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+    <div class="flex flex-col gap-1">
+        <nav class="text-xs font-bold text-indigo-500 tracking-wide uppercase">
+            SCGI <span class="mx-1 text-slate-400 dark:text-slate-600">/</span> <span class="text-slate-600 dark:text-slate-300">Caja</span>
+        </nav>
         <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight">Historial de Caja</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Bitácora general de aperturas, cierres y flujos de efectivo de todos los usuarios.</p>
+            <h1 class="page-title">Historial de Caja</h1>
+            <p class="page-subtitle">Bitácora general de aperturas, cierres y flujos de efectivo de todos los usuarios</p>
         </div>
     </div>
 
     <!-- CONTENEDOR PRINCIPAL -->
-    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xs border border-slate-200 dark:border-slate-800 overflow-hidden">
+    <div class="table-container">
         
-        <div class="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800">
-            <h2 class="text-sm sm:text-base font-bold text-slate-800 dark:text-white">Registros del Sistema</h2>
-            <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">Historial maestro en tiempo real.</p>
+        <!-- Header de la tabla -->
+        <div class="p-6 bg-slate-50/50 dark:bg-[#070a11] border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
+            <div>
+                <h2 class="text-sm font-black text-slate-900 dark:text-white">Registros del Sistema</h2>
+                <p class="page-subtitle">Historial maestro en tiempo real</p>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
         </div>
 
-        <!-- 1. VISTA DE TARJETAS (SOLO CELULARES: < 768px) -->
-        <div class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <!-- 1. VISTA DE TARJETAS (MÓVIL < 768px) -->
+        <div class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
             @forelse($historial as $movimiento)
-                <div class="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                <div class="p-5 space-y-4 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/5 transition-colors">
                     
-                    <!-- Header de Tarjeta: Usuario y Estado -->
+                    <!-- Usuario y Estado -->
                     <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center font-bold text-indigo-600 dark:text-indigo-400 text-xs flex-shrink-0">
-                                {{ substr($movimiento->user->name ?? 'U', 0, 2) }}
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center font-black text-indigo-600 dark:text-indigo-400 text-xs shrink-0 shadow-sm">
+                                {{ strtoupper(substr($movimiento->user->name ?? 'U', 0, 2)) }}
                             </div>
                             <span class="font-bold text-xs text-slate-900 dark:text-white truncate">
                                 {{ $movimiento->user->name ?? 'N/A' }}
@@ -39,95 +50,104 @@
 
                         <div>
                             @if($movimiento->estado === 'abierta')
-                                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                                <span class="badge-emerald">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500"></span>
                                     Abierta
                                 </span>
                             @else
-                                <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/25">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
                                     Cerrada
                                 </span>
                             @endif
                         </div>
                     </div>
 
-                    <!-- Detalles: Montos -->
-                    <div class="grid grid-cols-2 gap-2 bg-slate-50/75 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                    <!-- Detalles de Montos -->
+                    <div class="grid grid-cols-2 gap-3 bg-slate-100/60 dark:bg-[#070a11] p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-800">
                         <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Monto Inicial</span>
+                            <span class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Monto Inicial</span>
                             <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">
                                 ${{ number_format($movimiento->monto_apertura, 2) }}
                             </span>
                         </div>
                         <div>
-                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Monto Cierre</span>
-                            <span class="text-xs font-black text-slate-700 dark:text-slate-300">
+                            <span class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Monto Cierre</span>
+                            <span class="text-xs font-black text-slate-700 dark:text-slate-200">
                                 {{ $movimiento->monto_cierre ? '$' . number_format($movimiento->monto_cierre, 2) : '-' }}
                             </span>
                         </div>
                     </div>
 
                     <!-- Fechas -->
-                    <div class="space-y-1 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                    <div class="space-y-1.5 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
                         <div class="flex items-center justify-between">
                             <span class="font-medium text-slate-400">Apertura:</span>
-                            <span class="font-mono text-slate-700 dark:text-slate-300">
-                                {{ $movimiento->fecha_apertura ? \Carbon\Carbon::parse($movimiento->fecha_apertura)->format('d/m/Y') : '-' }}
+                            <span class="font-mono font-semibold text-slate-700 dark:text-slate-300">
+                                {{ $movimiento->fecha_apertura ? \Carbon\Carbon::parse($movimiento->fecha_apertura)->format('d/m/Y H:i') : '-' }}
                             </span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="font-medium text-slate-400">Cierre:</span>
-                            <span class="font-mono text-slate-700 dark:text-slate-300">
-                                {{ $movimiento->fecha_cierre ? \Carbon\Carbon::parse($movimiento->fecha_cierre)->format('d/m/Y') : '-' }}
+                            <span class="font-mono font-semibold text-slate-700 dark:text-slate-300">
+                                {{ $movimiento->fecha_cierre ? \Carbon\Carbon::parse($movimiento->fecha_cierre)->format('d/m/Y H:i') : '-' }}
                             </span>
                         </div>
                     </div>
 
                 </div>
             @empty
-                <div class="p-8 text-center text-xs text-slate-400">
+                <div class="p-12 text-center text-xs text-slate-400">
                     No hay registros de movimientos en la base de datos.
                 </div>
             @endforelse
         </div>
 
-        <!-- 2. VISTA DE TABLA (TABLETS Y ESCRITORIO: >= 768px) -->
+        <!-- 2. VISTA DE TABLA (ESCRITORIO >= 768px) -->
         <div class="hidden md:block overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                <thead class="bg-slate-50/75 dark:bg-slate-950/75 text-slate-400 font-bold uppercase tracking-wider text-[11px] border-b border-slate-100 dark:border-slate-800">
+            <table class="w-full">
+                <thead>
                     <tr>
-                        <th class="px-6 py-4">Usuario</th>
-                        <th class="px-6 py-4">Apertura</th>
-                        <th class="px-6 py-4">Cierre</th>
-                        <th class="px-6 py-4">Monto Inicial</th>
-                        <th class="px-6 py-4">Monto Cierre</th>
-                        <th class="px-6 py-4 text-center">Estado</th>
+                        <th class="table-th">Usuario</th>
+                        <th class="table-th">Apertura</th>
+                        <th class="table-th">Cierre</th>
+                        <th class="table-th">Monto Inicial</th>
+                        <th class="table-th">Monto Cierre</th>
+                        <th class="table-th text-center">Estado</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                <tbody>
                     @forelse($historial as $movimiento)
-                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                            <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">
-                                {{ $movimiento->user->name ?? 'N/A' }}
+                        <tr class="table-tr">
+                            <td class="table-td">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center font-black text-indigo-600 dark:text-indigo-400 text-xs shrink-0">
+                                        {{ strtoupper(substr($movimiento->user->name ?? 'U', 0, 2)) }}
+                                    </div>
+                                    <span class="font-bold text-slate-900 dark:text-white">
+                                        {{ $movimiento->user->name ?? 'N/A' }}
+                                    </span>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-slate-500 dark:text-slate-400 font-mono text-[11px]">
-                                {{ $movimiento->fecha_apertura ? \Carbon\Carbon::parse($movimiento->fecha_apertura)->format('d/m/Y') : '-' }}
+                            <td class="table-td font-mono text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                {{ $movimiento->fecha_apertura ? \Carbon\Carbon::parse($movimiento->fecha_apertura)->format('d/m/Y H:i') : '-' }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-slate-500 dark:text-slate-400 font-mono text-[11px]">
-                                {{ $movimiento->fecha_cierre ? \Carbon\Carbon::parse($movimiento->fecha_cierre)->format('d/m/Y') : '-' }}
+                            <td class="table-td font-mono text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                {{ $movimiento->fecha_cierre ? \Carbon\Carbon::parse($movimiento->fecha_cierre)->format('d/m/Y H:i') : '-' }}
                             </td>
-                            <td class="px-6 py-4 font-bold text-emerald-600 dark:text-emerald-400">
+                            <td class="table-td font-mono font-bold text-emerald-500 dark:text-emerald-400">
                                 ${{ number_format($movimiento->monto_apertura, 2) }}
                             </td>
-                            <td class="px-6 py-4 font-bold text-slate-700 dark:text-slate-300">
+                            <td class="table-td font-mono font-bold text-slate-800 dark:text-slate-200">
                                 {{ $movimiento->monto_cierre ? '$' . number_format($movimiento->monto_cierre, 2) : '-' }}
                             </td>
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
+                            <td class="table-td text-center whitespace-nowrap">
                                 @if($movimiento->estado === 'abierta')
-                                    <span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                                    <span class="badge-emerald">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500"></span>
                                         Abierta
                                     </span>
                                 @else
-                                    <span class="inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/25">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
                                         Cerrada
                                     </span>
                                 @endif
@@ -135,8 +155,11 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-slate-400">
-                                No hay registros de movimientos en la base de datos.
+                            <td colspan="6" class="py-16 text-center text-slate-400 dark:text-slate-500 font-medium">
+                                <div class="flex flex-col items-center justify-center gap-2">
+                                    <svg class="w-8 h-8 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <p>No hay registros de movimientos en la base de datos.</p>
+                                </div>
                             </td>
                         </tr>
                     @endforelse
@@ -144,13 +167,14 @@
             </table>
         </div>
 
-        <!-- PAGINACIÓN RESPONSIVE -->
+        <!-- PAGINACIÓN -->
         @if(isset($historial) && method_exists($historial, 'hasPages') && $historial->hasPages())
-            <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30">
+            <div class="p-4 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#070a11]">
                 {{ $historial->links() }}
             </div>
         @endif
     </div>
 
 </div>
+</x-app-container>
 @endsection

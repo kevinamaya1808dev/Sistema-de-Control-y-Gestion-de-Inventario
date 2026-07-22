@@ -25,7 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // 2. Componente Alpine.js para la Gestión de Usuarios
 document.addEventListener('alpine:init', () => {
     Alpine.data('userManagement', () => ({
-        isModalOpen: false,
+        // Sincronizado con <x-modal name="user">
+        modals: {
+            user: false
+        },
         isEditMode: false,
         
         // Estado inicial de datos del modal (rol 2 asignado por defecto a nuevos)
@@ -58,7 +61,7 @@ document.addEventListener('alpine:init', () => {
                 is_active: true 
             };
             this.currentUserPerms = [];
-            this.isModalOpen = true;
+            this.modals.user = true;
         },
 
         // Modal para EDITAR usuario
@@ -79,7 +82,14 @@ document.addEventListener('alpine:init', () => {
                 ? userPermsIds.map(id => parseInt(id, 10)) 
                 : [];
             
-            this.isModalOpen = true;
+            this.modals.user = true;
+        },
+
+        // Método genérico para cerrar modales compatible con <x-modal>
+        closeModal(name) {
+            if (this.modals[name] !== undefined) {
+                this.modals[name] = false;
+            }
         },
 
         // Confirmación para eliminar usuario con SweetAlert2

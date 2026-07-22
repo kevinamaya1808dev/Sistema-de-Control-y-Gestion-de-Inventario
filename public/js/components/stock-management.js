@@ -1,6 +1,9 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('stockManagement', () => ({
-        isModalOpen: false,
+        // Objeto de modales para sincronizar con <x-modal name="create">
+        modals: {
+            create: false
+        },
         searchQuery: '',
         selectedTypeFilter: '',
 
@@ -36,7 +39,13 @@ document.addEventListener('alpine:init', () => {
 
         openCreateModal() {
             this.resetForm();
-            this.isModalOpen = true;
+            this.modals.create = true;
+        },
+
+        closeModal(name) {
+            if (this.modals[name] !== undefined) {
+                this.modals[name] = false;
+            }
         },
 
         resetForm() {
