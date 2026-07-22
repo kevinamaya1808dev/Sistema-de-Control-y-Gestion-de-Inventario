@@ -18,6 +18,7 @@ class StoreProductRequest extends FormRequest
             'sku' => 'required|string|unique:products,sku|max:255',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'talla' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0', // Evita precios negativos
             'stock' => 'required|integer|min:0', // Evita stock negativo
             'category_id' => 'required|exists:categories,id',

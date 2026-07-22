@@ -48,9 +48,15 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <h3 class="font-black text-slate-900 dark:text-white tracking-wide text-sm truncate">{{ $product->name }}</h3>
-                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">
-                            SKU: <span class="uppercase text-slate-700 dark:text-slate-300 font-extrabold">{{ $product->sku ?? 'N/A' }}</span>
-                        </p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                SKU: <span class="uppercase text-slate-700 dark:text-slate-300 font-extrabold">{{ $product->sku ?? 'N/A' }}</span>
+                            </p>
+                            <span class="text-slate-300 dark:text-slate-700">•</span>
+                            <p class="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                                Talla: <span class="uppercase font-extrabold">{{ $product->talla ?? 'N/A' }}</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -65,7 +71,7 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <button @click="openEditModal({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->category_id ?? '' }}', {{ $product->price }}, {{ $product->stock }}, '{{ $product->sku ?? '' }}')" 
+                        <button @click="openEditModal({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->category_id ?? '' }}', {{ $product->price }}, {{ $product->stock }}, '{{ $product->sku ?? '' }}', '{{ $product->talla ?? '' }}')" 
                                 class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20 rounded-xl transition-all cursor-pointer inline-flex items-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         </button>
@@ -85,13 +91,14 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr>
-                        <th class="table-th w-28">ID</th>
-                        <th class="table-th w-24">Imagen</th>
+                        <th class="table-th w-20">ID</th>
+                        <th class="table-th w-20">Imagen</th>
                         <th class="table-th">Producto</th>
-                        <th class="table-th w-48">Categoría</th>
-                        <th class="table-th w-32">Precio</th>
-                        <th class="table-th w-28">Stock</th>
-                        <th class="table-th text-right w-36">Acciones</th>
+                        <th class="table-th w-36">Categoría</th>
+                        <th class="table-th w-28">Talla</th>
+                        <th class="table-th w-28">Precio</th>
+                        <th class="table-th w-24">Stock</th>
+                        <th class="table-th text-right w-32">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,16 +114,22 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="table-td font-black text-slate-900 dark:text-white tracking-wide text-xs sm:text-sm">{{ $product->name }}</td>
+                        <td class="table-td font-black text-slate-900 dark:text-white tracking-wide text-xs sm:text-sm">
+                            {{ $product->name }}
+                            <div class="text-[10px] text-slate-400 font-mono font-normal">SKU: {{ $product->sku ?? 'N/A' }}</div>
+                        </td>
                         <td class="table-td">
                             <span class="font-black px-3 py-1.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-800 rounded-xl text-[11px] tracking-wide inline-block text-slate-800 dark:text-slate-200">
                                 {{ $product->category->name ?? 'Sin Categoría' }}
                             </span>
                         </td>
-                        <td class="table-td font-black text-indigo-600 dark:text-indigo-400 tabular-nums">${{ number_format($product->price, 2) }}</td>
+                        <td class="table-td font-extrabold text-indigo-600 dark:text-indigo-400 uppercase text-xs">
+                            {{ $product->talla ?? 'N/A' }}
+                        </td>
+                        <td class="table-td font-black text-slate-900 dark:text-white tabular-nums">${{ number_format($product->price, 2) }}</td>
                         <td class="table-td font-bold text-slate-700 dark:text-slate-400 tabular-nums">{{ $product->stock }} u.</td>
-                        <td class="table-td text-right space-x-2 whitespace-nowrap">
-                            <button @click="openEditModal({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->category_id ?? '' }}', {{ $product->price }}, {{ $product->stock }}, '{{ $product->sku ?? '' }}')" 
+                        <td class="table-td text-right space-x-1 whitespace-nowrap">
+                            <button @click="openEditModal({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->category_id ?? '' }}', {{ $product->price }}, {{ $product->stock }}, '{{ $product->sku ?? '' }}', '{{ $product->talla ?? '' }}')" 
                                     class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20 rounded-xl transition-all cursor-pointer inline-flex items-center">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                             </button>
@@ -127,7 +140,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="p-14 text-center text-slate-400 dark:text-slate-600 font-bold uppercase text-xs">No hay productos registrados.</td>
+                        <td colspan="8" class="p-14 text-center text-slate-400 dark:text-slate-600 font-bold uppercase text-xs">No hay productos registrados.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -147,14 +160,20 @@
                     <input type="text" name="name" class="form-input" required>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label class="form-label">Categoría</label>
-                    <select name="category_id" class="form-input cursor-pointer" required>
-                        <option value="">Selecciona una categoría</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                        @endforeach
-                    </select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="form-label">Categoría</label>
+                        <select name="category_id" class="form-input cursor-pointer" required>
+                            <option value="">Selecciona una categoría</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="form-label">Talla</label>
+                        <input type="text" name="talla" placeholder="Ej. S, M, L, 28, 30..." class="form-input uppercase">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -205,13 +224,19 @@
                     <input type="text" x-model="formEdit.name" name="name" class="form-input" required>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label class="form-label">Categoría</label>
-                    <select x-model="formEdit.category_id" name="category_id" class="form-input cursor-pointer" required>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                        @endforeach
-                    </select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="form-label">Categoría</label>
+                        <select x-model="formEdit.category_id" name="category_id" class="form-input cursor-pointer" required>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="form-label">Talla</label>
+                        <input type="text" x-model="formEdit.talla" name="talla" class="form-input uppercase">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">

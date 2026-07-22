@@ -42,7 +42,7 @@ class StockController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Validamos todos los inputs que vienen del formulario
+        // 1. Validamos todos los inputs incluyendo la imagen opcional
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
@@ -50,6 +50,7 @@ class StockController extends Controller
             'reason' => 'required|string',
             'precio_unitario' => 'nullable|numeric|min:0',
             'monto_recibido' => 'nullable|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $user = auth()->user();
@@ -97,7 +98,13 @@ class StockController extends Controller
                 $montoRecibido = $request->monto_recibido ?? 0;
                 $cambioEntregado = $montoRecibido > 0 ? ($montoRecibido - $totalCalculado) : 0;
 
-                // 6. Guardamos el registro con variables ya definidas
+                // 6. Procesamos la imagen si se adjuntó una
+                $imagePath = null;
+                if ($request->hasFile('image')) {
+                    $imagePath = $request->file('image')->store('movements', 'public');
+                }
+
+                // 7. Guardamos el registro del movimiento en la base de datos
                 InventoryMovement::create([
                     'product_id' => $product->id,
                     'user_id' => $user->id,
@@ -109,6 +116,7 @@ class StockController extends Controller
                     'total' => $totalCalculado,
                     'monto_recibido' => $montoRecibido,
                     'cambio' => $cambioEntregado,
+                    'image' => $imagePath,
                     'date' => now(),
                 ]);
             });

@@ -7,6 +7,8 @@ document.addEventListener('alpine:init', () => {
         searchQuery: '',
         selectedTypeFilter: '',
 
+        selectedProductImage: '', // <--- Variable para almacenar la ruta de la foto del tenis
+
         currentMovement: {
             product_id: '',
             type: 'entrada',
@@ -14,7 +16,8 @@ document.addEventListener('alpine:init', () => {
             reason_preset: '',
             reason_custom: '',
             precio_unitario: 0,
-            monto_recibido: ''
+            monto_recibido: '',
+            talla: '' // <--- Campo para la talla del calzado
         },
 
         init() {
@@ -56,14 +59,25 @@ document.addEventListener('alpine:init', () => {
                 reason_preset: '',
                 reason_custom: '',
                 precio_unitario: 0,
-                monto_recibido: ''
+                monto_recibido: '',
+                talla: ''
             };
+            this.selectedProductImage = ''; // <--- Limpiar la imagen al cerrar/reiniciar
         },
 
         onProductChange(event) {
             const selectedOption = event.target.options[event.target.selectedIndex];
-            const price = parseFloat(selectedOption.dataset.price) || 0;
-            this.currentMovement.precio_unitario = price;
+            if (selectedOption && selectedOption.value) {
+                // Capturar el precio del producto
+                const price = parseFloat(selectedOption.dataset.price) || 0;
+                this.currentMovement.precio_unitario = price;
+
+                // Capturar la imagen asignada al producto en el catálogo
+                this.selectedProductImage = selectedOption.dataset.image || '';
+            } else {
+                this.currentMovement.precio_unitario = 0;
+                this.selectedProductImage = '';
+            }
         },
 
         get finalReason() {
