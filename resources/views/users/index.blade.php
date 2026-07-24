@@ -2,6 +2,10 @@
 
 @section('title', 'Gestión de Usuarios')
 
+@php
+    $totalPermsCount = count($permissions);
+@endphp
+
 @section('content')
 <x-app-container>
 <div x-data="userManagement()" class="space-y-6">
@@ -83,6 +87,7 @@
                 </thead>
                 <tbody>
                     @foreach($users as $user)
+                        @php $userPermCount = $user->permissions->count(); @endphp
                         <tr class="table-tr">
                             <td class="table-td">
                                 <div class="flex items-center gap-3">
@@ -103,10 +108,6 @@
                             <td class="table-td">
                                 <div class="flex items-center gap-2">
                                     <div class="flex items-center gap-1">
-                                        @php 
-                                            $totalPermsCount = count($permissions);
-                                            $userPermCount = $user->permissions->count();
-                                        @endphp
                                         @for ($i = 1; $i <= $totalPermsCount; $i++)
                                             <span class="w-1.5 h-1.5 rounded-full {{ $i <= $userPermCount ? 'bg-indigo-500 shadow-xs shadow-indigo-500' : 'bg-slate-200 dark:bg-slate-800' }}"></span>
                                         @endfor
@@ -138,7 +139,7 @@
                                 @endif
                             </td>
                             <td class="table-td text-right space-x-1 whitespace-nowrap">
-                                <button @click="setUserData({{ json_encode($user) }}, {{ json_encode($user->permissions->pluck('id')) }})" 
+                                <button @click="setUserData({{ json_encode($user->only(['id', 'name', 'email', 'role_id', 'is_active'])) }}, {{ json_encode($user->permissions->pluck('id')) }})" 
                                         class="p-2 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20 rounded-xl transition-all cursor-pointer inline-flex items-center" title="Editar Usuario">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
@@ -162,6 +163,7 @@
         {{-- VISTA MÓVIL ( < 768px ) --}}
         <div class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
             @foreach($users as $user)
+                @php $userPermCount = $user->permissions->count(); @endphp
                 <div class="p-4 space-y-3 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-colors">
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3 overflow-hidden">
@@ -175,7 +177,7 @@
                         </div>
 
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <button @click="setUserData({{ json_encode($user) }}, {{ json_encode($user->permissions->pluck('id')) }})" 
+                            <button @click="setUserData({{ json_encode($user->only(['id', 'name', 'email', 'role_id', 'is_active'])) }}, {{ json_encode($user->permissions->pluck('id')) }})" 
                                     class="p-2 text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 rounded-xl active:scale-95 transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
@@ -211,10 +213,6 @@
 
                         <div class="flex items-center gap-2">
                             <div class="flex items-center gap-1">
-                                @php 
-                                    $totalPermsCount = count($permissions);
-                                    $userPermCount = $user->permissions->count();
-                                @endphp
                                 @for ($i = 1; $i <= $totalPermsCount; $i++)
                                     <span class="w-1.5 h-1.5 rounded-full {{ $i <= $userPermCount ? 'bg-indigo-500 shadow-xs shadow-indigo-500' : 'bg-slate-200 dark:bg-slate-800' }}"></span>
                                 @endfor
@@ -238,15 +236,12 @@
 
     </div>
 
-    {{-- ========================================================= --}}
     {{-- MODAL REGISTRAR / EDITAR USUARIO --}}
-    {{-- ========================================================= --}}
     <x-modal name="user" title="Gestión de Usuario" maxWidth="max-w-2xl">
         <form :action="isEditMode ? '/usuarios/' + currentUser.id : '{{ route('users.store') }}'" method="POST" class="relative z-10 flex flex-col flex-1 min-h-0 bg-transparent">
             @csrf
             <input type="hidden" name="_method" value="PUT" :disabled="!isEditMode">
 
-            {{-- Alertas de Error dentro del modal --}}
             @if ($errors->any())
                 <div class="mx-5 sm:mx-7 mt-4 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs rounded-2xl shrink-0">
                     <p class="font-bold uppercase tracking-wider text-[11px] mb-1">Se encontraron errores:</p>
@@ -338,7 +333,7 @@
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400/80 mb-0">Permisos Personalizados</h4>
                                 <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-indigo-400 border border-emerald-500/20 dark:border-indigo-500/20">
-                                    <span x-text="selectedPermsCount"></span> / {{ count($permissions) }} SELECCIONADOS
+                                    <span x-text="selectedPermsCount"></span> / {{ $totalPermsCount }} SELECCIONADOS
                                 </span>
                             </div>
 

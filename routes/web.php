@@ -60,6 +60,13 @@ Route::middleware('auth')->group(function () {
      */
     Route::middleware('caja.abierta')->group(function () {
 
+        // 🛒 Punto de Venta (POS - Redirigido a CajaController)
+        Route::middleware('permission:process-sales')->group(function () {
+            Route::get('/pos', [CajaController::class, 'pos'])->name('pos.index');
+            Route::post('/pos/buscar-producto', [CajaController::class, 'searchProduct'])->name('pos.search');
+            Route::post('/pos/procesar-venta', [CajaController::class, 'store'])->name('pos.store');
+        });
+
         // Categorías de Productos
         Route::middleware('permission:manage-categories')->group(function () {
             Route::get('/categorias', [CategoryController::class, 'index'])->name('categories.index');

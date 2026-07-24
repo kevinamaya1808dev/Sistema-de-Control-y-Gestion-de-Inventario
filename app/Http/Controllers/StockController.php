@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CajaMovimiento;
+use App\Http\Requests\StoreStockMovementRequest;
 use App\Models\InventoryMovement;
 use App\Models\Product;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\InventoryService;
+use Exception;
 use Illuminate\Support\Facades\Gate;
 
 class StockController extends Controller
@@ -14,25 +14,27 @@ class StockController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $products = Product::all();
 
-        // Construimos la consulta base
-        $query = InventoryMovement::with(['product', 'user'])->latest();
+        // 1. Obtener la lista de productos para el modal de registrar movimiento
+        $products = Product::with('sizes')->orderBy('name', 'asc')->get();
 
-        // Si el usuario no es admin (o no tiene permiso 'manage-users'), solo ve sus movimientos
+        // Query Base de Movimientos de Inventario
+        $query = InventoryMovement::with(['product.sizes', 'user'])->latest();
+
         if (Gate::denies('manage-users')) {
             $query->where('user_id', $user->id);
         }
 
-        $movements = $query->get();
+        // Métricas de Stock
+        $totalMovements = (clone $query)->count();
+        $totalEntradas = (clone $query)->where('type', 'entrada')->count();
+        $totalSalidas = (clone $query)->where('type', 'salida')->count();
 
-        // Calculamos métricas basadas únicamente en los registros obtenidos
-        $totalMovements = $movements->count();
-        $totalEntradas = $movements->where('type', 'entrada')->count();
-        $totalSalidas = $movements->where('type', 'salida')->count();
+        // Paginación
+        $movements = $query->paginate(20);
 
         return view('stock.index', compact(
-            'products',
+            'products', // <-- Agregado para que no truene la vista
             'movements',
             'totalMovements',
             'totalEntradas',
@@ -40,91 +42,21 @@ class StockController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(StoreStockMovementRequest $request, InventoryService $inventoryService)
     {
-        // 1. Validamos todos los inputs incluyendo la imagen opcional
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-            'type' => 'required|in:entrada,salida',
-            'reason' => 'required|string',
-            'precio_unitario' => 'nullable|numeric|min:0',
-            'monto_recibido' => 'nullable|numeric|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
-
-        $user = auth()->user();
-        $cajaActiva = null;
-
-        // 2. Si es Venta directa, verificamos la caja abierta y que el dinero recibido alcance
-        if ($request->type === 'salida' && $request->reason === 'Venta directa') {
-            $cajaActiva = CajaMovimiento::where('user_id', $user->id)
-                ->where('estado', 'abierta')
-                ->first();
-
-            if (! $cajaActiva) {
-                return redirect()->back()->withInput()->with('error', 'Debes abrir un turno de caja antes de realizar una Venta Directa.');
-            }
-
-            $totalVenta = $request->quantity * ($request->precio_unitario ?? 0);
-            if (($request->monto_recibido ?? 0) < $totalVenta) {
-                return redirect()->back()->withInput()->with('error', 'El dinero recibido es menor al total a cobrar.');
-            }
-        }
-
         try {
-            DB::transaction(function () use ($request, $user, $cajaActiva) {
-                // 3. Obtenemos el producto PRIMERO para tener acceso a sus datos
-                $product = Product::findOrFail($request->product_id);
-                $cantidad = (int) $request->quantity;
+            $inventoryService->processMovement(
+                array_merge($request->validated(), ['image' => $request->file('image')]),
+                auth()->id()
+            );
 
-                // 4. Actualizamos el stock y validamos existencias
-                if ($request->type === 'salida') {
-                    if ($product->stock < $cantidad) {
-                        throw new \Exception("Stock insuficiente. Stock actual: {$product->stock} pzas.");
-                    }
-                    $product->stock -= $cantidad;
-                } else {
-                    $product->stock += $cantidad;
-                }
-                $product->save();
+            return redirect()->route('stock.index')
+                ->with('success', 'Movimiento registrado y stock por talla actualizado correctamente.');
 
-                // 5. Preparamos montos para el registro
-                $precioUnitario = $request->precio_unitario ?? 0;
-                $totalCalculado = ($request->type === 'salida' && $request->reason === 'Venta directa')
-                    ? ($cantidad * $precioUnitario)
-                    : 0;
-
-                $montoRecibido = $request->monto_recibido ?? 0;
-                $cambioEntregado = $montoRecibido > 0 ? ($montoRecibido - $totalCalculado) : 0;
-
-                // 6. Procesamos la imagen si se adjuntó una
-                $imagePath = null;
-                if ($request->hasFile('image')) {
-                    $imagePath = $request->file('image')->store('movements', 'public');
-                }
-
-                // 7. Guardamos el registro del movimiento en la base de datos
-                InventoryMovement::create([
-                    'product_id' => $product->id,
-                    'user_id' => $user->id,
-                    'caja_id' => $cajaActiva ? $cajaActiva->id : null,
-                    'type' => $request->type,
-                    'quantity' => $cantidad,
-                    'reason' => $request->reason,
-                    'unit_price' => $precioUnitario,
-                    'total' => $totalCalculado,
-                    'monto_recibido' => $montoRecibido,
-                    'cambio' => $cambioEntregado,
-                    'image' => $imagePath,
-                    'date' => now(),
-                ]);
-            });
-
-            return redirect()->route('stock.index')->with('success', 'Movimiento registrado correctamente.');
-
-        } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        } catch (Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $e->getMessage());
         }
     }
 }

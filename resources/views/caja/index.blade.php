@@ -2,6 +2,35 @@
 
 @section('header_title', 'Control de Caja y Turno')
 
+@push('styles')
+<style>
+@media print {
+    /* Ocultar toda la interfaz web al imprimir */
+    body * {
+        visibility: hidden !important;
+    }
+    
+    /* Mostrar únicamente el contenedor del ticket */
+    .printable-ticket, .printable-ticket * {
+        visibility: visible !important;
+    }
+    
+    .printable-ticket {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 80mm !important; /* Ancho estándar de ticket */
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
+</style>
+@endpush
+
 @section('content')
 <x-app-container>
 <div class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
@@ -145,6 +174,7 @@
                         </span>
                     </div>
 
+                    {{-- VISTA MÓVIL --}}
                     <div class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
                         @forelse($ventasTurno ?? [] as $venta)
                             <div class="p-4 space-y-2 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-colors">
@@ -155,8 +185,8 @@
                                     </span>
                                 </div>
                                 <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 font-medium">
-                                    <span>Recibido: <strong class="text-slate-800 dark:text-slate-100 font-bold">${{ number_format($venta->monto_recibido ?? 0, 2) }}</strong></span>
-                                    <span>Cambio: <strong class="{{ ($venta->cambio ?? 0) > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400' }} font-bold">${{ number_format($venta->cambio ?? 0, 2) }}</strong></span>
+                                    <span>Recibido: <strong class="text-slate-800 dark:text-slate-100 font-bold">${{ number_format($venta->monto_recibido ?? $venta->amount_received ?? $venta->received ?? 0, 2) }}</strong></span>
+                                    <span>Cambio: <strong class="{{ ($venta->cambio ?? $venta->change ?? 0) > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400' }} font-bold">${{ number_format($venta->cambio ?? $venta->change ?? 0, 2) }}</strong></span>
                                     <span class="badge-emerald">Efectivo</span>
                                 </div>
                             </div>
@@ -167,6 +197,7 @@
                         @endforelse
                     </div>
 
+                    {{-- VISTA DESKTOP --}}
                     <div class="hidden md:block overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -183,9 +214,9 @@
                                     <tr class="table-tr">
                                         <td class="table-td text-slate-400 font-mono text-[11px] font-bold">{{ $venta->created_at ? $venta->created_at->format('d/m/Y') : '' }}</td>
                                         <td class="table-td font-black text-emerald-600 dark:text-emerald-400">${{ number_format($venta->total ?? ($venta->quantity * $venta->unit_price), 2) }}</td>
-                                        <td class="table-td font-bold text-slate-800 dark:text-slate-100">${{ number_format($venta->monto_recibido ?? 0, 2) }}</td>
-                                        <td class="table-td font-bold {{ ($venta->cambio ?? 0) > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400' }}">
-                                            ${{ number_format($venta->cambio ?? 0, 2) }}
+                                        <td class="table-td font-bold text-slate-800 dark:text-slate-100">${{ number_format($venta->monto_recibido ?? $venta->amount_received ?? $venta->received ?? 0, 2) }}</td>
+                                        <td class="table-td font-bold {{ ($venta->cambio ?? $venta->change ?? 0) > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400' }}">
+                                            ${{ number_format($venta->cambio ?? $venta->change ?? 0, 2) }}
                                         </td>
                                         <td class="table-td">
                                             <span class="badge-emerald">
@@ -225,7 +256,7 @@
                                     <span class="text-[10px] text-slate-400 font-mono font-bold">{{ $gasto->created_at ? $gasto->created_at->format('d/m/Y') : '' }}</span>
                                 </div>
                                 <span class="font-black text-rose-600 dark:text-rose-400 text-sm whitespace-nowrap">
-                                    -${{ number_format($gasto->monto, 2) }}
+                                    -${{ number_format($gasto->monto ?? $gasto->total, 2) }}
                                 </span>
                             </div>
                         @empty
@@ -249,7 +280,7 @@
                                     <tr class="table-tr">
                                         <td class="table-td text-slate-400 font-mono text-[11px] font-bold">{{ $gasto->created_at ? $gasto->created_at->format('d/m/Y') : '' }}</td>
                                         <td class="table-td font-bold text-slate-800 dark:text-white">{{ $gasto->concepto ?? $gasto->observaciones }}</td>
-                                        <td class="table-td font-black text-rose-600 dark:text-rose-400">-${{ number_format($gasto->monto, 2) }}</td>
+                                        <td class="table-td font-black text-rose-600 dark:text-rose-400">-${{ number_format($gasto->monto ?? $gasto->total, 2) }}</td>
                                     </tr>
                                 @empty
                                     <tr>

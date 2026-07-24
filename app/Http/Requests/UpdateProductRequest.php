@@ -13,8 +13,9 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
-        // Obtenemos el ID del producto que se está editando desde la ruta
-        $productId = $this->route('product')->id;
+        // Obtenemos el ID de forma segura sin importar si viene como Modelo o como String/ID
+        $product = $this->route('product');
+        $productId = is_object($product) ? $product->id : $product;
 
         return [
             'sku' => 'required|string|max:255|unique:products,sku,'.$productId,
@@ -22,7 +23,7 @@ class UpdateProductRequest extends FormRequest
             'description' => 'nullable|string',
             'talla' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'stock' => 'nullable|integer|min:0', // <--- Se cambia a nullable porque no viene en el modal de edición
             'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ];
