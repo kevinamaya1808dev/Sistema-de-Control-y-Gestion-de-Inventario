@@ -62,6 +62,14 @@ class CajaController extends Controller
      */
     public function pos()
     {
+        $cajaActiva = $this->getCajaActiva();
+
+        // Si no hay caja abierta, redirige a la vista de caja con mensaje de error
+        if (!$cajaActiva) {
+            return redirect()->route('caja.index')
+                ->with('error', 'Debes abrir un turno de caja antes de acceder al Punto de Venta.');
+        }
+
         $products = Product::with(['sizes', 'category'])->get()->map(function ($p) {
             $sizes = $p->sizes->map(fn ($s) => [
                 'id' => $s->id,
@@ -88,7 +96,7 @@ class CajaController extends Controller
 
         return view('caja.pos', [
             'products' => $products,
-            'cajaActiva' => $this->getCajaActiva(),
+            'cajaActiva' => $cajaActiva,
         ]);
     }
 

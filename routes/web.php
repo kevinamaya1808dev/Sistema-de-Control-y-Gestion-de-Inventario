@@ -25,8 +25,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // 🟢 RUTA DE IMAGEN LIBRE DE RESTRICCIÓN DE CAJA (Evita el error 403)
+    // 🟢 RUTA DE IMAGEN LIBRE DE RESTRICCIÓN DE CAJA
     Route::get('/productos/imagen/{path}', [ProductController::class, 'showImage'])->where('path', '.*')->name('products.image');
+
+    // 🌐 PUNTO DE VENTA UNIVERSAL (Acceso libre para cualquier usuario autenticado)
+    Route::get('/pos', [CajaController::class, 'pos'])->name('pos.index');
+    Route::post('/pos/buscar-producto', [CajaController::class, 'searchProduct'])->name('pos.search');
 
     /**
      *--------------------------------------------------------------------------
@@ -48,24 +52,20 @@ Route::middleware('auth')->group(function () {
         Route::put('/usuarios/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/usuarios/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
-        // 🛡️ Historial de Turnos y Cajas (Separado y exclusivo para el Administrador)
+        // 🛡️ Historial de Turnos y Cajas (Exclusivo para Administrador)
         Route::get('/caja/historial', [CajaController::class, 'historial'])->name('caja.historial');
         Route::get('/caja/historial/{id}', [CajaController::class, 'detallesHistorial'])->name('caja.historial.detalles');
     });
 
     /**
      *--------------------------------------------------------------------------
-     * 🔒 GRUPO DE RUTAS OPERATIVAS (REQUIEREN CAJA ABIERTA)
+     * 🔒 ACCIONES QUE REQUIEREN OBLIGATORIAMENTE CAJA ABIERTA
      *--------------------------------------------------------------------------
      */
     Route::middleware('caja.abierta')->group(function () {
 
-        // 🛒 Punto de Venta (POS - Redirigido a CajaController)
-        Route::middleware('permission:process-sales')->group(function () {
-            Route::get('/pos', [CajaController::class, 'pos'])->name('pos.index');
-            Route::post('/pos/buscar-producto', [CajaController::class, 'searchProduct'])->name('pos.search');
-            Route::post('/pos/procesar-venta', [CajaController::class, 'store'])->name('pos.store');
-        });
+        // 🛒 Procesar Venta Final (Requiere caja abierta para impactar la transacción)
+        Route::post('/pos/procesar-venta', [CajaController::class, 'store'])->name('pos.store');
 
         // Categorías de Productos
         Route::middleware('permission:manage-categories')->group(function () {

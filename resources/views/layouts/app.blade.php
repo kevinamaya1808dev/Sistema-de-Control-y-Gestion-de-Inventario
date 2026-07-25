@@ -77,8 +77,8 @@
                 <div class="space-y-1">
                     <p class="px-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">Operaciones e Inventario</p>
                     
-                    {{-- PUNTO DE VENTA (POS) --}}
-                    @can('process-sales')
+                    {{-- PUNTO DE VENTA (POS) - Oculto si la caja no está abierta --}}
+                    @if(auth()->user()->cajaActiva())
                         <a href="{{ route('pos.index') }}" 
                            class="flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap {{ request()->routeIs('pos.*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
                             <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('pos.*') ? 'text-white' : 'text-emerald-500 dark:text-emerald-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +86,7 @@
                             </svg>
                             <span>Punto de Venta (POS)</span>
                         </a>
-                    @endcan
+                    @endif
 
                     @can('manage-categories')
                         <a href="{{ route('categories.index') }}" 
@@ -193,7 +193,7 @@
                 </div>
             </header>
 
-            {{-- MAIN: SCROLL VERTICAL FUNCIONAL, SIN SCROLL LATERAL NUNCA (overflow-x-hidden) --}}
+            {{-- MAIN --}}
             <main class="flex-1 min-w-0 max-w-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden p-3 sm:p-4 md:p-8 w-full bg-slate-100 dark:bg-[#0b0f19] transition-colors duration-200">
                 <div class="w-full max-w-7xl mx-auto box-border min-w-0">
                     @yield('content')
