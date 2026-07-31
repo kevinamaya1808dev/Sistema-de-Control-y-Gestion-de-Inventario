@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CajaMovimiento extends Model
 {
@@ -33,6 +34,14 @@ class CajaMovimiento extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relación con los movimientos de inventario asociados a esta caja.
+     */
+    public function movimientos(): HasMany
+    {
+        return $this->hasMany(InventoryMovement::class, 'caja_id');
     }
 
     public function estaAbierta(): bool

@@ -10,7 +10,6 @@ document.addEventListener('alpine:init', () => {
 
         openCreateModal() {
             this.modals.create = true;
-            // Si usas el evento del x-modal del sistema:
             this.$dispatch('open-modal', 'create');
         },
         openEditModal(id, name, description) {

@@ -15,8 +15,6 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         // 🛑 CONTROL DE ACCESO ABSOLUTO:
-        // Si es Operador (por rol) o NO tiene el permiso para ver métricas/reportes,
-        // lo redirigimos de inmediato al Control de Caja.
         $esAdmin = ($user->id === 1 || $user->isAdmin());
         $esOperador = ($user->role && $user->role->name === 'Operador');
 
@@ -45,12 +43,9 @@ class DashboardController extends Controller
             return $product->price * $product->stock;
         });
 
-        // C-2. Dinero total de las ventas en el mes seleccionado
+        // C-2. Dinero total de las ventas en el mes seleccionado (Solo Ventas Directas)
         $totalSalesMoney = InventoryMovement::where('type', 'salida')
-            ->where(function ($query) {
-                $query->where('reason', 'like', '%venta%')
-                    ->orWhere('reason', 'like', '%Venta%');
-            })
+            ->where('reason', 'like', 'Venta directa%')
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get()
             ->sum(function ($movement) {
@@ -66,7 +61,10 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        // F. TOP PRODUCTOS MÁS VENDIDOS (Solo Ventas Directas)
         $topProducts = InventoryMovement::select('product_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->where('type', 'salida')
+            ->where('reason', 'like', 'Venta directa%')
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->groupBy('product_id')
             ->orderByDesc('total_quantity')

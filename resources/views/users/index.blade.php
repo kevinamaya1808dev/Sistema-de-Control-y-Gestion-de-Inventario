@@ -10,30 +10,7 @@
 <x-app-container>
 <div x-data="userManagement()" class="space-y-6">
 
-    {{-- ALERTAS DE NOTIFICACIÓN --}}
-    @if(session('success'))
-        <div class="badge-emerald w-full p-4 justify-between text-xs rounded-2xl">
-            <div class="flex items-center gap-2.5">
-                <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <span class="font-bold tracking-wide">{{ session('success') }}</span>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="badge-rose w-full p-4 justify-between text-xs rounded-2xl">
-            <div class="flex items-center gap-2.5">
-                <div class="p-2 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <span class="font-bold tracking-wide">{{ session('error') }}</span>
-            </div>
-        </div>
-    @endif
-
-    {{-- ENCABEZADO PRINCIPAL --}}
+    {{-- CABECERA DE LA PÁGINA --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
         <div>
             <h1 class="page-title">Gestión de Usuarios</h1>
@@ -45,7 +22,7 @@
         </button>
     </div>
 
-    {{-- MÉTRICAS Y KPIS --}}
+    {{-- TARJETAS DE MÉTRICAS (KPIs) --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <div class="kpi-card">
             <span class="kpi-label">Total Usuarios</span>
@@ -69,10 +46,10 @@
         </div>
     </div>
 
-    {{-- CONTENEDOR PRINCIPAL / TABLA Y TARJETAS --}}
+    {{-- CONTENEDOR DE TABLA ADAPTATIVO --}}
     <div class="table-container">
         
-        {{-- VISTA ESCRITORIO ( >= 768px ) --}}
+        {{-- TABLA ESCRITORIO ( >= 768px ) --}}
         <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -139,7 +116,7 @@
                                 @endif
                             </td>
                             <td class="table-td text-right space-x-1 whitespace-nowrap">
-                                <button @click="setUserData({{ json_encode($user->only(['id', 'name', 'email', 'role_id', 'is_active'])) }}, {{ json_encode($user->permissions->pluck('id')) }})" 
+                                <button @click="setUserData(@js($user->only(['id', 'name', 'email', 'role_id', 'is_active'])), @js($user->permissions->pluck('id')))" 
                                         class="p-2 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20 rounded-xl transition-all cursor-pointer inline-flex items-center" title="Editar Usuario">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
@@ -160,7 +137,7 @@
             </table>
         </div>
 
-        {{-- VISTA MÓVIL ( < 768px ) --}}
+        {{-- TARJETAS MÓVILES ( < 768px ) --}}
         <div class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
             @foreach($users as $user)
                 @php $userPermCount = $user->permissions->count(); @endphp
@@ -177,7 +154,7 @@
                         </div>
 
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <button @click="setUserData({{ json_encode($user->only(['id', 'name', 'email', 'role_id', 'is_active'])) }}, {{ json_encode($user->permissions->pluck('id')) }})" 
+                            <button @click="setUserData(@js($user->only(['id', 'name', 'email', 'role_id', 'is_active'])), @js($user->permissions->pluck('id')))" 
                                     class="p-2 text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 rounded-xl active:scale-95 transition-all">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </button>
@@ -236,7 +213,7 @@
 
     </div>
 
-    {{-- MODAL REGISTRAR / EDITAR USUARIO --}}
+    {{-- MODAL CON CLASES UNIVERSALES DE FORMULARIO --}}
     <x-modal name="user" title="Gestión de Usuario" maxWidth="max-w-2xl">
         <form :action="isEditMode ? '/usuarios/' + currentUser.id : '{{ route('users.store') }}'" method="POST" class="relative z-10 flex flex-col flex-1 min-h-0 bg-transparent">
             @csrf
@@ -272,12 +249,23 @@
                 </div>
 
                 {{-- CONTRASEÑA --}}
-                <div class="space-y-1.5">
-                    <label class="form-label">
-                        Contraseña <span x-show="isEditMode" class="text-slate-400 dark:text-slate-500 font-normal lowercase">(opcional al editar)</span>
-                    </label>
-                    <input type="password" name="password" :required="!isEditMode" class="form-input" placeholder="••••••••">
-                </div>
+            <div class="space-y-1.5">
+                <label class="form-label">
+                    Contraseña <span x-show="isEditMode" class="text-slate-400 dark:text-slate-500 font-normal lowercase">(opcional al editar)</span>
+                </label>
+                <input type="password" name="password" :required="!isEditMode" minlength="8"
+                    class="form-input @error('password') border-rose-500 focus:border-rose-500 @enderror" 
+                    placeholder="••••••••" autocomplete="new-password">
+                
+                @error('password')
+                    <p class="text-[11px] font-bold text-rose-500 flex items-center gap-1 mt-1">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ $message }}
+                    </p>
+                @else
+                    <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-1">Debe tener al menos 8 caracteres.</p>
+                @enderror
+            </div>
 
                 <template x-if="currentUser.id === 1">
                     <div>
@@ -333,7 +321,7 @@
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400/80 mb-0">Permisos Personalizados</h4>
                                 <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-indigo-400 border border-emerald-500/20 dark:border-indigo-500/20">
-                                    <span x-text="selectedPermsCount"></span> / {{ $totalPermsCount }} SELECCIONADOS
+                                    <span x-text="currentUserPerms.length"></span> / {{ $totalPermsCount }} SELECCIONADOS
                                 </span>
                             </div>
 
@@ -346,7 +334,6 @@
                                                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-indigo-600 dark:text-indigo-500 focus:ring-0">
                                             <div>
                                                 <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block line-clamp-1">{{ $permission->name }}</span>
-                                                <span class="text-[9px] text-slate-400 dark:text-slate-500 font-mono font-bold">{{ $permission->slug }}</span>
                                             </div>
                                         </div>
                                         <span class="w-2 h-2 rounded-full transition-colors shrink-0" 
@@ -362,13 +349,12 @@
 
             {{-- PIE DE BOTONES --}}
             <div class="flex items-center justify-end gap-3 p-5 sm:px-7 border-t border-slate-100 dark:border-white/5 bg-transparent shrink-0">
-                <button type="button" @click="closeModal('user')" class="btn-secondary">
-                    Cancelar
-                </button>
-                <button type="submit" 
-                        class="px-8 py-2.5 rounded-2xl bg-indigo-600 dark:bg-[#5138ed] hover:bg-indigo-500 dark:hover:bg-[#432be3] text-white font-bold text-xs transition-all shadow-md dark:shadow-[0_0_20px_rgba(81,56,237,0.5)] active:scale-95 cursor-pointer">
-                    <span x-text="isEditMode ? 'Guardar Cambios' : 'Guardar Usuario'"></span>
-                </button>
+            <button type="button" @click="closeModal('user')" class="btn-secondary">
+                Cancelar
+            </button>
+            <button type="submit" class="btn-primary px-8 py-2.5">
+                <span x-text="isEditMode ? 'Guardar Cambios' : 'Guardar Usuario'"></span>
+            </button>
             </div>
         </form>
     </x-modal>
@@ -376,7 +362,6 @@
 </div>
 </x-app-container>
 @endsection
-
 @push('scripts')
     <script src="{{ asset('js/components/user-management.js') }}"></script>
 @endpush

@@ -1,36 +1,34 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full dark">
+<html lang="es" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - SCGI</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full bg-[#070a11] text-slate-100 font-sans antialiased flex items-center justify-center p-4 relative overflow-hidden">
+<body class="h-full bg-slate-100/80 text-slate-800 font-sans antialiased flex items-center justify-center p-4 selection:bg-orange-500 selection:text-white">
 
-    {{-- Efectos de Luz de Fondo (Glow Orbs) --}}
-    <div class="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
-
-    <div class="relative w-full max-w-md bg-[#0d121f]/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-800/80 p-8 sm:p-10 z-10">
+    {{-- TARJETA PRINCIPAL DEL LOGIN --}}
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 p-8 sm:p-10 z-10 transition-all">
         
-        {{-- ENCABEZADO / LOGO --}}
+        {{-- ENCABEZADO / BRANDING EXACTO AL DASHBOARD --}}
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white font-black text-2xl tracking-widest shadow-lg shadow-indigo-500/25 ring-1 ring-white/20 mb-4">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-600 text-white font-black text-2xl tracking-widest shadow-lg shadow-orange-500/30 mb-4 hover:scale-105 transition-transform">
                 S
             </div>
-            <h1 class="text-2xl font-black tracking-wide text-white uppercase">SCGI Negocios</h1>
-            <p class="text-xs font-semibold text-slate-400 mt-1">Sistema de Control y Gestión de Inventarios</p>
+            <h1 class="text-2xl font-black tracking-tight text-slate-900 uppercase">SCGI Negocios</h1>
+            <p class="text-xs font-semibold text-slate-500 mt-1">Control de Inventarios</p>
         </div>
 
         {{-- ALERTA DE ERRORES --}}
         @if ($errors->any())
-            <div class="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs animate-fade-in">
-                <div class="font-bold flex items-center gap-2 mb-1 text-sm">
-                    <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    <span>Acceso denegado</span>
+            <div class="mb-6 p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-700 text-xs animate-fade-in">
+                <div class="font-bold flex items-center gap-2 mb-1 text-xs uppercase tracking-wider text-orange-600">
+                    <svg class="w-4 h-4 text-orange-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>Acceso Denegado</span>
                 </div>
-                <p class="text-slate-400">Las credenciales ingresadas no coinciden con nuestros registros.</p>
+                <p class="text-slate-600 leading-relaxed">Las credenciales ingresadas no coinciden con nuestros registros.</p>
             </div>
         @endif
 
@@ -40,35 +38,35 @@
 
             {{-- CORREO ELECTRÓNICO --}}
             <div class="space-y-1.5">
-                <label for="email" class="block text-[11px] font-black uppercase tracking-wider text-slate-300">Correo Electrónico</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 pointer-events-none">
+                <label for="email" class="block text-[11px] font-black uppercase tracking-wider text-slate-500">Correo Electrónico</label>
+                <div class="relative group">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-orange-600 transition-colors pointer-events-none">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
                     </span>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
                            placeholder="usuario@empresa.com"
-                           class="w-full pl-11 pr-4 py-3 bg-[#070a11] border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner">
+                           class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all font-medium">
                 </div>
             </div>
 
             {{-- CONTRASEÑA --}}
             <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
-                    <label for="password" class="block text-[11px] font-black uppercase tracking-wider text-slate-300">Contraseña</label>
+                    <label for="password" class="block text-[11px] font-black uppercase tracking-wider text-slate-500">Contraseña</label>
                     @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">¿Olvidaste tu contraseña?</a>
+                        <a href="{{ route('password.request') }}" class="text-xs font-bold text-orange-600 hover:text-orange-500 transition-colors">¿Olvidaste tu contraseña?</a>
                     @endif
                 </div>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 pointer-events-none">
+                <div class="relative group">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-orange-600 transition-colors pointer-events-none">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     </span>
                     
                     <input id="password" type="password" name="password" required autocomplete="current-password"
                            placeholder="••••••••"
-                           class="w-full pl-11 pr-12 py-3 bg-[#070a11] border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner">
+                           class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all font-medium">
                     
-                    <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer focus:outline-none" title="Mostrar/Ocultar contraseña">
+                    <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-orange-600 transition-colors cursor-pointer focus:outline-none" title="Mostrar/Ocultar contraseña">
                         <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -83,20 +81,20 @@
             {{-- RECORDAR SESIÓN --}}
             <div class="flex items-center justify-between pt-1">
                 <label for="remember_me" class="flex items-center gap-2.5 cursor-pointer select-none group">
-                    <input id="remember_me" type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-700 bg-[#070a11] text-indigo-600 focus:ring-indigo-500 focus:ring-offset-[#0d121f] cursor-pointer">
-                    <span class="text-xs font-medium text-slate-400 group-hover:text-slate-300 transition-colors">Recordar sesión</span>
+                    <input id="remember_me" type="checkbox" name="remember" class="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 cursor-pointer accent-orange-600 transition-all">
+                    <span class="text-xs font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">Recordar sesión</span>
                 </label>
             </div>
 
-            {{-- BOTÓN SUBMIT --}}
-            <button type="submit" class="w-full mt-2 py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-black uppercase text-xs tracking-wider rounded-xl shadow-lg shadow-indigo-600/25 transition-all cursor-pointer">
+            {{-- BOTÓN DE INGRESO NARANJA --}}
+            <button type="submit" class="w-full mt-2 py-3.5 px-4 bg-orange-600 hover:bg-orange-500 active:scale-[0.98] text-white font-black uppercase text-xs tracking-wider rounded-xl shadow-lg shadow-orange-500/25 transition-all cursor-pointer">
                 Iniciar Sesión
             </button>
         </form>
 
         {{-- PIE DE PÁGINA --}}
-        <div class="mt-8 pt-6 border-t border-slate-800/60 text-center">
-            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+        <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                 SCGI &copy; 2026 &bull; Todos los derechos reservados
             </p>
         </div>

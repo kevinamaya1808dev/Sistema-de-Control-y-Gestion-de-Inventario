@@ -20,6 +20,8 @@ class InventoryMovement extends Model
         'total',
         'monto_recibido',
         'cambio',
+        'payment_method',
+        'reference',
         'date',
     ];
 

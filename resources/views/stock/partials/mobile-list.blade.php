@@ -1,66 +1,76 @@
-<div class="space-y-3 w-full max-w-full">
-    @forelse($movements as $movement)
-        @php
-            $rawReason = $movement->reason ?? '';
-            $talla = $movement->talla;
-            $cleanReason = $rawReason;
-
-            if (empty($talla) && preg_match('/\(Talla:\s*([^)]+)\)/i', $rawReason, $matches)) {
-                $talla = trim($matches[1]);
-                $cleanReason = trim(preg_replace('/\(Talla:\s*[^)]+\)/i', '', $rawReason));
-            }
-        @endphp
-        <div x-show="filterRow('{{ addslashes($movement->product->name ?? '') }}', '{{ addslashes($cleanReason) }}', '{{ $movement->type }}')"
-             class="p-3.5 bg-white dark:bg-[#0b0f19] rounded-2xl border border-slate-200/80 dark:border-slate-800/80 space-y-3 shadow-sm w-full max-w-full box-border">
+<div class="space-y-3">
+    @forelse($movements ?? [] as $movement)
+        <div class="p-4 bg-white rounded-2xl border border-neutral-200/80 shadow-xs space-y-3">
             
-            <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
-                <div class="flex items-center gap-2.5 min-w-0">
-                    @if(optional($movement->product)->image || optional($movement->product)->imagen)
-                        <img src="{{ asset('storage/' . ($movement->product->image ?? $movement->product->imagen)) }}" 
-                             class="w-9 h-9 object-cover rounded-xl border border-slate-700/50 shrink-0">
+            {{-- Encabezado: Producto y Estado --}}
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <h4 class="font-bold text-neutral-900 text-sm leading-tight">
+                        {{ $movement->product->name ?? 'N/A' }}
+                    </h4>
+                    <p class="text-[11px] text-neutral-500 mt-0.5">
+                        {{ $movement->reason }}
+                    </p>
+                </div>
+
+                {{-- Badge de Entrada/Salida --}}
+                <div class="shrink-0">
+                    @if($movement->type === 'entrada')
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200/60">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                            ENTRADA
+                        </span>
                     @else
-                        <div class="w-9 h-9 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-[9px] text-slate-400 shrink-0 font-bold">
-                            TENIS
-                        </div>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-200/60">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                            SALIDA
+                        </span>
                     @endif
-                    <div class="min-w-0">
-                        <h4 class="font-black text-xs text-slate-800 dark:text-slate-100 truncate">
-                            {{ $movement->product->name ?? 'Producto no encontrado' }}
-                        </h4>
-                        <span class="text-[10px] text-slate-400 block font-mono">#{{ $movement->id }}</span>
+                </div>
+            </div>
+
+            {{-- Detalles en Grilla / Filas --}}
+            <div class="pt-2 border-t border-neutral-100 grid grid-cols-2 gap-2 text-xs">
+                
+                {{-- SKU y Talla --}}
+                <div>
+                    <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">SKU / Talla</span>
+                    <div class="flex items-center gap-1 mt-0.5">
+                        <span class="font-mono text-[11px] bg-neutral-100 text-neutral-700 px-1.5 py-0.5 rounded border border-neutral-200/60">
+                            {{ $movement->product->sku ?? 'N/A' }}
+                        </span>
+                        @if(!empty($movement->talla) && $movement->talla !== 'N/A')
+                            <span class="font-bold text-neutral-600 text-[11px]">({{ $movement->talla }})</span>
+                        @endif
                     </div>
                 </div>
 
-                <span class="shrink-0 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider {{ strtolower($movement->type) === 'entrada' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20' }}">
-                    {{ $movement->type }}
+                {{-- Cantidad --}}
+                <div class="text-right">
+                    <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Cantidad</span>
+                    <span class="font-black text-sm mt-0.5 block {{ $movement->type === 'entrada' ? 'text-emerald-600' : 'text-rose-600' }}">
+                        {{ $movement->type === 'entrada' ? '+' : '-' }}{{ $movement->quantity }}
+                    </span>
+                </div>
+            </div>
+
+            {{-- Pie de tarjeta: Fecha y Usuario --}}
+            <div class="pt-2 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400 font-medium">
+                <span class="font-mono">
+                    {{ $movement->created_at->format('d M Y - H:i') }}
                 </span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/40">
-                    <span class="text-[9px] font-bold text-slate-400 block uppercase tracking-wider">Talla (MX)</span>
-                    <span class="font-black text-indigo-400 text-xs">{{ $talla ?? '-' }}</span>
-                </div>
-
-                <div class="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/40">
-                    <span class="text-[9px] font-bold text-slate-400 block uppercase tracking-wider">Cantidad</span>
-                    <span class="font-black text-slate-700 dark:text-slate-200 text-xs">{{ $movement->quantity }} prs</span>
+                
+                <div class="flex items-center gap-1.5 text-neutral-600 font-semibold">
+                    <span class="w-5 h-5 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center text-[9px] font-bold">
+                        {{ strtoupper(substr($movement->user->name ?? 'A', 0, 1)) }}
+                    </span>
+                    <span>{{ $movement->user->name ?? 'admin' }}</span>
                 </div>
             </div>
 
-            <div class="space-y-1 text-xs pt-0.5">
-                <div class="flex items-center justify-between text-[11px] gap-2">
-                    <span class="text-slate-400 shrink-0">Motivo:</span>
-                    <span class="text-slate-700 dark:text-slate-300 font-semibold truncate text-right">{{ $cleanReason ?: 'Sin motivo' }}</span>
-                </div>
-                <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1.5 border-t border-slate-100 dark:border-slate-800/40">
-                    <span>Por: <strong class="text-slate-600 dark:text-slate-300">{{ $movement->user->name ?? 'Sistema' }}</strong></span>
-                    <span class="font-mono">{{ optional($movement->created_at)->format('d/m/Y') }}</span>
-                </div>
-            </div>
         </div>
     @empty
-        <div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-[#0b0f19] rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div class="p-6 bg-white rounded-2xl border border-neutral-200/80 text-center text-xs text-neutral-400 font-medium">
             No hay movimientos registrados.
         </div>
     @endforelse

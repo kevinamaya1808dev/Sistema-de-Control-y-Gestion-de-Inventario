@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
         // 🛡️ Historial de Turnos y Cajas (Exclusivo para Administrador)
         Route::get('/caja/historial', [CajaController::class, 'historial'])->name('caja.historial');
         Route::get('/caja/historial/{id}', [CajaController::class, 'detallesHistorial'])->name('caja.historial.detalles');
+        Route::get('/caja/historial/{id}/detalle', [CajaController::class, 'detalleHistorial'])->name('caja.historial.detalle');
     });
 
     /**
@@ -66,6 +67,9 @@ Route::middleware('auth')->group(function () {
 
         // 🛒 Procesar Venta Final (Requiere caja abierta para impactar la transacción)
         Route::post('/pos/procesar-venta', [CajaController::class, 'store'])->name('pos.store');
+
+        // 💸 Registrar Gastos y Salidas de Caja (Requiere caja abierta)
+        Route::post('/caja/gasto', [CajaController::class, 'registrarGasto'])->name('caja.gasto');
 
         // Categorías de Productos
         Route::middleware('permission:manage-categories')->group(function () {

@@ -33,6 +33,14 @@ document.addEventListener('alpine:init', () => {
                     this.products = [];
                 }
             }
+
+            // Limpiar la talla si cambia el ID del producto
+            this.$watch('currentMovement.product_id', (newVal) => {
+                if (!newVal) {
+                    this.availableSizes = [];
+                    this.currentMovement.talla = '';
+                }
+            });
         },
 
         // --- FILTRADO DE TABLA Y TARJETAS MÓVILES ---
@@ -52,7 +60,6 @@ document.addEventListener('alpine:init', () => {
         // --- MANEJO DE MODALES Y CAMPOS ---
         openCreateModal() {
             this.resetForm();
-            // Soporte para apertura nativa de Alpine o mediante eventos dispatch
             this.modals.create = true;
             if (window.Alpine) {
                 this.$dispatch('open-modal', { name: 'create' });
@@ -83,25 +90,44 @@ document.addEventListener('alpine:init', () => {
             const selectedOption = event.target.options[event.target.selectedIndex];
             
             if (selectedOption && selectedOption.value) {
-                // Si pasas las tallas dinámicas en el data-sizes del option
                 const rawSizes = selectedOption.dataset.sizes;
                 if (rawSizes) {
                     try {
                         this.availableSizes = typeof rawSizes === 'string' ? JSON.parse(rawSizes) : rawSizes;
                     } catch (e) {
+                        console.error('Error al parsear tallas:', e);
                         this.availableSizes = [];
                     }
                 } else {
-                    // Fallback a array vacio para usar las tallas por defecto del select
-                    this.availableSizes = [];
+                    // Si no trae atributo data-sizes, busca directamente en el objeto local de productos
+                    const product = this.products.find(p => p.id == selectedOption.value);
+                    this.availableSizes = product ? (product.sizes || product.tallas || []) : [];
                 }
             } else {
                 this.availableSizes = [];
             }
+            
             this.currentMovement.talla = '';
         },
 
         // --- GETTERS COMPUTADOS ---
+        get currentSizeStock() {
+            if (!this.currentMovement.talla || this.availableSizes.length === 0) return null;
+            
+            const selected = this.availableSizes.find(item => {
+                if (typeof item === 'object' && item !== null) {
+                    return (item.talla || item.name || item.size) === this.currentMovement.talla;
+                }
+                return item === this.currentMovement.talla;
+            });
+
+            if (selected && typeof selected === 'object' && selected.stock !== undefined) {
+                return selected.stock;
+            }
+            
+            return null;
+        },
+
         get finalReason() {
             if (this.currentMovement.reason_preset === 'Otro') {
                 return this.currentMovement.reason_custom;
